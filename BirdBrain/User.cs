@@ -9,20 +9,13 @@ namespace BirdBrain
     public class User
     {
         public string Id { get; set; }
-        public string ApplicationName { get; set; }
         public string Username { get; set; }
-        public string PasswordHash { get; set; }
-        public string PasswordSalt { get; set; }
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public DateTime DateCreated { get; set; }
-        public DateTime? DateLastLogin { get; set; }
-        public IList<string> Roles { get; set; }
+        public string Password { get; set; }
 
-        public User()
+        public User(string username, string password)
         {
-            Roles = new List<string>();
-            Id = "authorization/users/"; // db assigns id
+            Username = username;
+            Password = password;
         }
     }
 }

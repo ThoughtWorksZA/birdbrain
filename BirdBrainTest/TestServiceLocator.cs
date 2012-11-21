@@ -28,6 +28,14 @@ namespace BirdBrainTest
             instances[serviceType][""] = instance;
         }
 
+        public void DoSetClearDefaultInstance(Type serviceType)
+        {
+            if (instances.ContainsKey(serviceType))
+            {
+                instances.Remove(serviceType);
+            }
+        }
+
         protected override object DoGetInstance(Type serviceType, string key)
         {
             if (key == null)

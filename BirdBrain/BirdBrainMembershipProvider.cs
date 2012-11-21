@@ -7,27 +7,43 @@ using System.Web;
 using System.Web.Security;
 using Microsoft.Practices.ServiceLocation;
 using NLog;
+using Raven.Client;
 using Raven.Client.Document;
+using System.Security.Cryptography;
 
 namespace BirdBrain
 {
     public class BirdBrainMembershipProvider : MembershipProvider
     {
+        private readonly string providerName = "BirdBrainMembership";
+
+        private readonly DocumentStore documentStore;
+
+        private readonly Logger logger;
+
+        public override string ApplicationName { get; set; }
+
         public BirdBrainMembershipProvider()
         {
             logger = LogManager.GetLogger(typeof (BirdBrainMembershipProvider).Name);
             documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
         }
 
-        private readonly DocumentStore documentStore;
-
-        private Logger logger;
-
-        public override string ApplicationName { get; set; }
-
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
         {
-            logger.Info("ChangePassword " + documentStore.ToString());
+            var session = documentStore.OpenSession();
+            var results = from user in session.Query<User>()
+                          where user.Username == username && 
+                                user.Password == oldPassword
+                          select user;
+            var users = results.ToArray();
+            if (users.Count() == 1)
+            {
+                users[0].Password = newPassword;
+                session.Store(users[0]);
+                session.SaveChanges();
+                return true;
+            }
             return false;
         }
 
@@ -38,8 +54,12 @@ namespace BirdBrain
 
         public override MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved, object providerUserKey, out MembershipCreateStatus status)
         {
-            status = MembershipCreateStatus.ProviderError;
-            return null;
+            var user = new User(username, password);
+            var session = documentStore.OpenSession();
+            session.Store(user, Guid.NewGuid().ToString());
+            session.SaveChanges();
+            status = MembershipCreateStatus.Success;
+            return new MembershipUser(providerName, username, providerUserKey, email, passwordQuestion, "", isApproved, false, DateTime.Now, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
         }
 
         public override bool DeleteUser(string username, bool deleteAllRelatedData)
@@ -154,7 +174,12 @@ namespace BirdBrain
 
         public override bool ValidateUser(string username, string password)
         {
-            throw new NotImplementedException();
+            var session = documentStore.OpenSession();
+            var results = from user in session.Query<User>()
+                          where user.Username == username &&
+                                user.Password == password
+                          select user;
+            return results.Count() == 1;
         }
     }
 }
