@@ -119,5 +119,15 @@ namespace BirdBrainTest
             var result = createdUser.Equals(retrievedUser);
             Assert.IsTrue(result);
         }
+
+        [TestMethod]
+        public void ShouldKnowHowToGetUserByEmail()
+        {
+            MembershipCreateStatus status;
+            var createdUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            var retrievedUserName = provider.GetUserNameByEmail(createdUser.Email); 
+
+            Assert.AreEqual(createdUser.UserName, retrievedUserName);
+        }
     }
 }

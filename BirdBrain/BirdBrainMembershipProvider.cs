@@ -132,7 +132,11 @@ namespace BirdBrain
 
         public override string GetUserNameByEmail(string email)
         {
-            throw new NotImplementedException();
+            var session = documentStore.OpenSession();
+            var results = from _user in session.Query<User>()
+                          where _user.Email == email
+                          select _user.Username;
+            return results.ToArray()[0];
         }
 
         public override int MaxInvalidPasswordAttempts
