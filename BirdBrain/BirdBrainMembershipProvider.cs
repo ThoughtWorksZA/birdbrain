@@ -54,17 +54,28 @@ namespace BirdBrain
 
         public override MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved, object providerUserKey, out MembershipCreateStatus status)
         {
-            var user = new User(username, password);
+            var user = new User(username, password, email);
             var session = documentStore.OpenSession();
-            session.Store(user, Guid.NewGuid().ToString());
+            session.Store(user);
             session.SaveChanges();
             status = MembershipCreateStatus.Success;
-            return new MembershipUser(providerName, username, providerUserKey, email, passwordQuestion, "", isApproved, false, DateTime.Now, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
+            return new BirdBrainMembershipUser(providerName, user.Username, user.Id, user.Email, passwordQuestion, "", isApproved, false, DateTime.Now, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
         }
 
         public override bool DeleteUser(string username, bool deleteAllRelatedData)
         {
-            throw new NotImplementedException();
+            var session = documentStore.OpenSession();
+            var results = from user in session.Query<User>()
+                          where user.Username == username
+                          select user;
+            var users = results.ToArray();
+            if (users.Count() == 1)
+            {
+                session.Delete(users[0]);
+                session.SaveChanges();
+                return true;
+            }
+            return false;
         }
 
         public override bool EnablePasswordReset
@@ -104,12 +115,19 @@ namespace BirdBrain
 
         public override MembershipUser GetUser(string username, bool userIsOnline)
         {
-            throw new NotImplementedException();
+            var session = documentStore.OpenSession();
+            var results = from _user in session.Query<User>()
+                          where _user.Username == username
+                          select _user;
+            var user = results.ToArray()[0];
+            return new BirdBrainMembershipUser(providerName, user.Username, user.Id, user.Email, "", "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
         }
 
         public override MembershipUser GetUser(object providerUserKey, bool userIsOnline)
         {
-            throw new NotImplementedException();
+            var session = documentStore.OpenSession();
+            var user = session.Load<User>(providerUserKey.ToString());
+            return new BirdBrainMembershipUser(providerName, user.Username, user.Id, user.Email, "", "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
         }
 
         public override string GetUserNameByEmail(string email)

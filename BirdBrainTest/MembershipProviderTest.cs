@@ -84,5 +84,40 @@ namespace BirdBrainTest
             provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
             Assert.IsFalse(provider.ChangePassword("test", "notpassword", "newpassword"));
         }
+
+        [TestMethod]
+        public void ShouldKnowHowToGetAUserByUsername()
+        {
+            MembershipCreateStatus status;
+            var createdUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            var retrievedUser = provider.GetUser("test", true);
+            Assert.AreEqual(createdUser.ProviderUserKey, retrievedUser.ProviderUserKey);
+            Assert.AreEqual(createdUser.UserName, retrievedUser.UserName);
+        }
+
+        [TestMethod]
+        public void ShouldKnowHowToDeleteUserExcludingRelatedData()
+        {
+            MembershipCreateStatus status;
+            var createdUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            Assert.IsTrue(provider.DeleteUser("test", false));
+            var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
+            var session = documentStore.OpenSession();
+            var results = from user in session.Query<User>()
+                          where user.Username == "test"
+                          select user;
+            Assert.AreEqual(0, results.ToArray().Count());
+        }
+
+        [TestMethod]
+        public void ShouldKnowHowToGetAUserByProviderUserKey()
+        {
+            MembershipCreateStatus status;
+            var createdUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            var retrievedUser = provider.GetUser(createdUser.ProviderUserKey, true);
+            Assert.AreEqual(createdUser.ProviderUserKey, retrievedUser.ProviderUserKey);
+            var result = createdUser.Equals(retrievedUser);
+            Assert.IsTrue(result);
+        }
     }
 }

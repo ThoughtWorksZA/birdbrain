@@ -111,6 +111,7 @@
     <Compile Include="MembershipProviderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestServiceLocator.cs" />
+    <Compile Include="MembershipUserTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
