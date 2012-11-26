@@ -152,7 +152,7 @@ namespace BirdBrain
 
         public override string GetPassword(string username, string answer)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
         public override MembershipUser GetUser(string username, bool userIsOnline)

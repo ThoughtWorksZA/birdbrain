@@ -197,5 +197,13 @@ namespace BirdBrainTest
             users.MoveNext();
             Assert.AreEqual(users.Current, createdUser);  
         }
+
+        [TestMethod]
+        public void ShouldKnowHowToGetUsersPassword()
+        {
+            var retrievedPassword = provider.GetPassword("test", "yes");
+
+            Assert.AreEqual(null, retrievedPassword);
+        }
     }
 }
