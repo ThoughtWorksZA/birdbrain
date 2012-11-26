@@ -184,5 +184,18 @@ namespace BirdBrainTest
             Assert.AreEqual(users.Current, createdUser);
 
         }
+
+        [TestMethod]
+        public void ShouldKnowHowToFindUsersByName()
+        {
+            MembershipCreateStatus status;
+            var createdUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            int totalRecords;
+            var foundUsers = provider.FindUsersByName("test", 1, 1, out totalRecords);
+
+            var users = foundUsers.GetEnumerator();
+            users.MoveNext();
+            Assert.AreEqual(users.Current, createdUser);  
+        }
     }
 }
