@@ -49,12 +49,26 @@ namespace BirdBrain
 
         public override bool ChangePasswordQuestionAndAnswer(string username, string password, string newPasswordQuestion, string newPasswordAnswer)
         {
-            throw new NotImplementedException();
+            var session = documentStore.OpenSession();
+            var results = from user in session.Query<User>()
+                          where user.Username == username && 
+                                user.Password == password
+                          select user;
+            var users = results.ToArray();
+            if (users.Count() == 1)
+            {
+                users[0].PasswordQuestion = newPasswordQuestion;
+                users[0].PasswordAnswer = newPasswordAnswer;
+                session.Store(users[0]);
+                session.SaveChanges();
+                return true;
+            }
+            return false;
         }
 
         public override MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved, object providerUserKey, out MembershipCreateStatus status)
         {
-            var user = new User(username, password, email);
+            var user = new User(username, password, email, passwordQuestion, passwordAnswer);
             var session = documentStore.OpenSession();
             session.Store(user);
             session.SaveChanges();
@@ -80,17 +94,27 @@ namespace BirdBrain
 
         public override bool EnablePasswordReset
         {
-            get { throw new NotImplementedException(); }
+            get { return true; }
         }
 
         public override bool EnablePasswordRetrieval
         {
-            get { throw new NotImplementedException(); }
+            get { return false; }
         }
 
         public override MembershipUserCollection FindUsersByEmail(string emailToMatch, int pageIndex, int pageSize, out int totalRecords)
         {
-            throw new NotImplementedException();
+            var session = documentStore.OpenSession();
+            var results = from _user in session.Query<User>()
+                          where _user.Email == emailToMatch
+                          select _user;
+            totalRecords = results.Count();
+            var users = new MembershipUserCollection();
+            foreach (var user in results)
+            {
+                users.Add(new BirdBrainMembershipUser(providerName, user.Username, user.Id, user.Email, user.PasswordQuestion, "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue));
+            }
+            return users;
         }
 
         public override MembershipUserCollection FindUsersByName(string usernameToMatch, int pageIndex, int pageSize, out int totalRecords)
@@ -116,10 +140,10 @@ namespace BirdBrain
         public override MembershipUser GetUser(string username, bool userIsOnline)
         {
             var session = documentStore.OpenSession();
-            var results = from _user in session.Query<User>()
+            var usersQuery = from _user in session.Query<User>()
                           where _user.Username == username
                           select _user;
-            var user = results.ToArray()[0];
+            var user = usersQuery.ToArray().First();
             return new BirdBrainMembershipUser(providerName, user.Username, user.Id, user.Email, "", "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
         }
 
@@ -133,10 +157,10 @@ namespace BirdBrain
         public override string GetUserNameByEmail(string email)
         {
             var session = documentStore.OpenSession();
-            var results = from _user in session.Query<User>()
+            var usersQuery = from _user in session.Query<User>()
                           where _user.Email == email
                           select _user.Username;
-            return results.ToArray()[0];
+            return usersQuery.ToArray().First();
         }
 
         public override int MaxInvalidPasswordAttempts
@@ -197,11 +221,11 @@ namespace BirdBrain
         public override bool ValidateUser(string username, string password)
         {
             var session = documentStore.OpenSession();
-            var results = from user in session.Query<User>()
+            var usersQuery = from user in session.Query<User>()
                           where user.Username == username &&
                                 user.Password == password
                           select user;
-            return results.Count() == 1;
+            return usersQuery.Count() != 0;
         }
     }
 }

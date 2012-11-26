@@ -129,5 +129,60 @@ namespace BirdBrainTest
 
             Assert.AreEqual(createdUser.UserName, retrievedUserName);
         }
+
+        [TestMethod]
+        public void ShouldKnowHowToChangePasswordQuestionAndAnswer()
+        {
+            MembershipCreateStatus status;
+            provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            Assert.IsTrue(provider.ChangePasswordQuestionAndAnswer("test", "password", "Is this for real?", "no"));
+            var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
+            var session = documentStore.OpenSession();
+            var results = from user in session.Query<User>()
+                          where user.Username == "test"
+                          select user;
+            Assert.AreEqual("Is this for real?", results.ToArray()[0].PasswordQuestion);
+            Assert.AreEqual("no", results.ToArray()[0].PasswordAnswer);
+        }
+
+        [TestMethod]
+        public void ShouldKnowHowToStorePasswordQuestionAndAnswerWhenCreating()
+        {
+            MembershipCreateStatus status;
+            provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
+            var session = documentStore.OpenSession();
+            var results = from user in session.Query<User>()
+                          where user.Username == "test"
+                          select user;
+            Assert.AreEqual("Is this a test?", results.ToArray()[0].PasswordQuestion);
+            Assert.AreEqual("yes", results.ToArray()[0].PasswordAnswer);
+        }
+
+        [TestMethod]
+        public void ShouldKnowWeDoNotSupportPasswordRetrival()
+        {
+            Assert.IsFalse(provider.EnablePasswordRetrieval);
+        }
+
+        [TestMethod]
+        public void ShouldKnowWeSupportPasswordReset()
+        {
+            Assert.IsTrue(provider.EnablePasswordReset);
+        }
+
+        [TestMethod]
+        public void ShouldKnowHowToFindUsersByEmail()
+        {
+            MembershipCreateStatus status;
+            var createdUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            int totalRecords;
+            var foundUsers = provider.FindUsersByEmail("derp@herp.com", 1, 1, out totalRecords);
+
+            var users = foundUsers.GetEnumerator();
+            users.MoveNext();
+            Assert.AreEqual(users.Current, createdUser);
+
+        }
     }
 }
