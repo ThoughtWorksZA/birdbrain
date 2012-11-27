@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Specialized;
+using System.Configuration;
 using System.Linq;
 using System.Web.Security;
 using BirdBrain;
@@ -27,6 +29,7 @@ namespace BirdBrainTest
             }
             ServiceLocator.SetLocatorProvider(() => serviceLocator);
             provider = new BirdBrainMembershipProvider();
+            provider.Initialize("MyApp", new NameValueCollection(ConfigurationManager.AppSettings));
         }
 
         [TestCleanup]

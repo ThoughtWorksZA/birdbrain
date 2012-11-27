@@ -14,6 +14,7 @@ namespace BirdBrain
         public string Email { get; set; }
         public string PasswordQuestion { get; set; }
         public string PasswordAnswer { get; set; }
+        public string[] Roles { get; set; }
 
         public User(string username, string password, string email, string passwordQuestion, string passwordAnswer)
         {

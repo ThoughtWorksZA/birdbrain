@@ -1,27 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
 using System.Web.Security;
 using Microsoft.Practices.ServiceLocation;
-using NLog;
 using Raven.Client;
 using Raven.Client.Document;
-using System.Security.Cryptography;
 
 namespace BirdBrain
 {
     public class BirdBrainMembershipProvider : MembershipProvider
     {
-        private readonly string providerName = "BirdBrainMembership";
+        private const string ProviderName = "BirdBrainMembership";
 
-        private readonly DocumentStore documentStore;
+        private DocumentStore documentStore;
 
-        private readonly Logger logger;
-
-        private static User[] getUsersByUsernameAndPassword(string username, string password, IDocumentSession session)
+        private static User[] GetUsersByUsernameAndPassword(string username, string password, IDocumentSession session)
         {
             var usersQuery = from user in session.Query<User>()
                           where user.Username == username &&
@@ -31,7 +24,7 @@ namespace BirdBrain
             return users;
         }
 
-        private static User[] getUsersByUsername(string username, IDocumentSession session)
+        private static User[] GetUsersByUsername(string username, IDocumentSession session)
         {
             var usersQuery = from user in session.Query<User>()
                           where user.Username == username
@@ -42,16 +35,16 @@ namespace BirdBrain
 
         public override string ApplicationName { get; set; }
 
-        public BirdBrainMembershipProvider()
+        public override void Initialize(string name, NameValueCollection config)
         {
-            logger = LogManager.GetLogger(typeof (BirdBrainMembershipProvider).Name);
             documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
+            base.Initialize(name, config);
         }
 
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
         {
             var session = documentStore.OpenSession();
-            var users = getUsersByUsernameAndPassword(username, oldPassword, session);
+            var users = GetUsersByUsernameAndPassword(username, oldPassword, session);
             if (users.Count() == 1)
             {
                 users[0].Password = newPassword;
@@ -65,7 +58,7 @@ namespace BirdBrain
         public override bool ChangePasswordQuestionAndAnswer(string username, string password, string newPasswordQuestion, string newPasswordAnswer)
         {
             var session = documentStore.OpenSession();
-            var users = getUsersByUsernameAndPassword(username, password, session);
+            var users = GetUsersByUsernameAndPassword(username, password, session);
             if (users.Count() == 1)
             {
                 users[0].PasswordQuestion = newPasswordQuestion;
@@ -84,13 +77,13 @@ namespace BirdBrain
             session.Store(user);
             session.SaveChanges();
             status = MembershipCreateStatus.Success;
-            return new BirdBrainMembershipUser(providerName, user.Username, user.Id, user.Email, passwordQuestion, "", isApproved, false, DateTime.Now, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
+            return new BirdBrainMembershipUser(ProviderName, user.Username, user.Id, user.Email, passwordQuestion, "", isApproved, false, DateTime.Now, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
         }
 
         public override bool DeleteUser(string username, bool deleteAllRelatedData)
         {
             var session = documentStore.OpenSession();
-            var users = getUsersByUsername(username, session);
+            var users = GetUsersByUsername(username, session);
             if (users.Count() == 1)
             {
                 session.Delete(users[0]);
@@ -120,7 +113,7 @@ namespace BirdBrain
             var users = new MembershipUserCollection();
             foreach (var user in results)
             {
-                users.Add(new BirdBrainMembershipUser(providerName, user.Username, user.Id, user.Email, user.PasswordQuestion, "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue));
+                users.Add(new BirdBrainMembershipUser(ProviderName, user.Username, user.Id, user.Email, user.PasswordQuestion, "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue));
             }
             return users;
         }
@@ -135,7 +128,7 @@ namespace BirdBrain
             var users = new MembershipUserCollection();
             foreach (var user in results)
             {
-                users.Add(new BirdBrainMembershipUser(providerName, user.Username, user.Id, user.Email, user.PasswordQuestion, "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue));
+                users.Add(new BirdBrainMembershipUser(ProviderName, user.Username, user.Id, user.Email, user.PasswordQuestion, "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue));
             }
             return users;
         }
@@ -158,15 +151,15 @@ namespace BirdBrain
         public override MembershipUser GetUser(string username, bool userIsOnline)
         {
             var session = documentStore.OpenSession();
-            var user = getUsersByUsername(username, session).First();
-            return new BirdBrainMembershipUser(providerName, user.Username, user.Id, user.Email, "", "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
+            var user = GetUsersByUsername(username, session).First();
+            return new BirdBrainMembershipUser(ProviderName, user.Username, user.Id, user.Email, "", "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
         }
 
         public override MembershipUser GetUser(object providerUserKey, bool userIsOnline)
         {
             var session = documentStore.OpenSession();
             var user = session.Load<User>(providerUserKey.ToString());
-            return new BirdBrainMembershipUser(providerName, user.Username, user.Id, user.Email, "", "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
+            return new BirdBrainMembershipUser(ProviderName, user.Username, user.Id, user.Email, "", "", true, false, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue, DateTime.MinValue);
         }
 
         public override string GetUserNameByEmail(string email)
@@ -236,7 +229,7 @@ namespace BirdBrain
         public override bool ValidateUser(string username, string password)
         {
             var session = documentStore.OpenSession();
-            var users = getUsersByUsernameAndPassword(username, password, session);
+            var users = GetUsersByUsernameAndPassword(username, password, session);
             return users.Count() != 0;
         }
     }
