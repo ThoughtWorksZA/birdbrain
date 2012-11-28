@@ -202,7 +202,26 @@ namespace BirdBrainTest
         }
 
         [TestMethod]
-        public void ShouldKnowHowToGetUsersPassword()
+        public void ShouldKnowHowToGetPaginatedUsers()
+        {
+            MembershipCreateStatus status;
+            var createdUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            var secondCreatedUser = provider.CreateUser("test2", "password", "derp2@herp.com", "Is this a test?", "yes", true, null, out status);
+            int totalRecords;
+            var foundUsers = provider.GetAllUsers(1, 1, out totalRecords);
+            Assert.AreEqual(2, totalRecords);
+            var users = foundUsers.GetEnumerator();
+            users.MoveNext();
+            Assert.AreEqual(users.Current, createdUser);
+            foundUsers = provider.GetAllUsers(2, 1, out totalRecords);
+            Assert.AreEqual(2, totalRecords);
+            users = foundUsers.GetEnumerator();
+            users.MoveNext();
+            Assert.AreEqual(users.Current, secondCreatedUser);
+        }
+
+        [TestMethod]
+        public void ShouldNotKnowHowToGetUsersPassword()
         {
             var retrievedPassword = provider.GetPassword("test", "yes");
 
