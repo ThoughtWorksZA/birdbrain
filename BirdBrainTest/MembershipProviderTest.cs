@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.Configuration;
 using System.Linq;
+using System.Web.Configuration;
 using System.Web.Security;
 using BirdBrain;
 using Microsoft.Practices.ServiceLocation;
@@ -29,7 +30,9 @@ namespace BirdBrainTest
             }
             ServiceLocator.SetLocatorProvider(() => serviceLocator);
             provider = new BirdBrainMembershipProvider();
-            provider.Initialize("MyApp", new NameValueCollection(ConfigurationManager.AppSettings));
+            var section = (MembershipSection)ConfigurationManager.GetSection("system.web/membership");
+            var config = section.Providers["BirdBrainMembership"].Parameters;
+            provider.Initialize("MyApp", config);
         }
 
         [TestCleanup]
@@ -224,8 +227,73 @@ namespace BirdBrainTest
         public void ShouldNotKnowHowToGetUsersPassword()
         {
             var retrievedPassword = provider.GetPassword("test", "yes");
-
             Assert.AreEqual(null, retrievedPassword);
+        }
+
+        [TestMethod]
+        public void ShouldKnowHowToResetPasswordUsingQuestionAndAnswer()
+        {
+            MembershipCreateStatus status;
+            provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            var password = provider.ResetPassword("test", "yes");
+            Assert.IsTrue(provider.ValidateUser("test", password));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(MembershipPasswordException), "Expected MembershipPasswordException")]
+        public void ShouldKnowNotToResetPasswordWhenAnswerIsWrong()
+        {
+            MembershipCreateStatus status;
+            provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            provider.ResetPassword("test", "no");
+        }
+
+        [TestMethod]
+        public void ShouldKnowMaxInvalidPasswordAttempts()
+        {
+            Assert.AreEqual(5, provider.MaxInvalidPasswordAttempts);
+        }
+
+        [TestMethod]
+        public void ShouldKnowMinRequiredNonAlphanumericCharacters()
+        {
+            Assert.AreEqual(0, provider.MinRequiredNonAlphanumericCharacters);
+        }
+
+        [TestMethod]
+        public void ShouldKnowMinRequiredPasswordLength()
+        {
+            Assert.AreEqual(6, provider.MinRequiredPasswordLength);
+        }
+
+        [TestMethod]
+        public void ShouldKnowPasswordAttemptWindow()
+        {
+            Assert.AreEqual(1, provider.PasswordAttemptWindow);
+        }
+
+        [TestMethod]
+        public void ShouldKnowPasswordFormat()
+        {
+            Assert.AreEqual(MembershipPasswordFormat.Clear, provider.PasswordFormat);
+        }
+
+        [TestMethod]
+        public void ShouldKnowPasswordStrengthRegularExpression()
+        {
+            Assert.AreEqual("[\\d\\w].*", provider.PasswordStrengthRegularExpression);
+        }
+
+        [TestMethod]
+        public void ShouldKnowRequiresQuestionAndAnswer()
+        {
+            Assert.AreEqual(true, provider.RequiresQuestionAndAnswer);
+        }
+
+        [TestMethod]
+        public void ShouldKnowRequiresUniqueEmail()
+        {
+            Assert.AreEqual(true, provider.RequiresUniqueEmail);
         }
     }
 }

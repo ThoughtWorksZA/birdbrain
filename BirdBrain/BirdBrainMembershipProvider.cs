@@ -13,43 +13,96 @@ namespace BirdBrain
         private const string ProviderName = "BirdBrainMembership";
 
         private DocumentStore documentStore;
+        private int minRequiredPasswordLength = 6;
+        private int maxInvalidPasswordAttempts = 5;
+        private int minRequiredNonAlphanumericCharacters = 0;
+        private int passwordAttemptWindow = 1;
+        private MembershipPasswordFormat passwordFormat = MembershipPasswordFormat.Clear;
+        private string passwordStrengthRegularExpression = "[\\d\\w].*";
+        private bool requiresQuestionAndAnswer = true;
 
-        private static User[] GetUsersByUsernameAndPassword(string username, string password, IDocumentSession session)
+        public override string ApplicationName { get; set; }
+
+        public override void Initialize(string name, NameValueCollection config)
+        {
+            base.Initialize(name, config);
+            foreach (var key in config.AllKeys)
+            {
+                Console.Out.WriteLine(key + " - " + config[key]);
+            }
+            if (config["minRequiredPasswordLength"] != null)
+            {
+                minRequiredPasswordLength = int.Parse(config["minRequiredPasswordLength"]);
+            }
+            if (config["maxInvalidPasswordAttempts"] != null)
+            {
+                maxInvalidPasswordAttempts = int.Parse(config["maxInvalidPasswordAttempts"]);
+            }
+            if (config["minRequiredNonAlphanumericCharacters"] != null)
+            {
+                minRequiredNonAlphanumericCharacters = int.Parse(config["minRequiredNonAlphanumericCharacters"]);
+            }
+            if (config["passwordAttemptWindow"] != null)
+            {
+                passwordAttemptWindow = int.Parse(config["passwordAttemptWindow"]);
+            }
+            if (config["passwordFormat"] != null)
+            {
+                MembershipPasswordFormat _passwordFormat;
+                if (MembershipPasswordFormat.TryParse(config["passwordFormat"], true, out _passwordFormat))
+                {
+                    passwordFormat = _passwordFormat;
+                }
+            }
+            if (config["passwordStrengthRegularExpression"] != null)
+            {
+                passwordStrengthRegularExpression = config["passwordStrengthRegularExpression"];
+            }
+            if (config["requiresQuestionAndAnswer"] != null)
+            {
+                requiresQuestionAndAnswer = bool.Parse(config["requiresQuestionAndAnswer"]);
+            }
+            documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
+        }
+
+        private static User GetUserByUsernameAndPassword(string username, string password, IDocumentSession session)
         {
             var usersQuery = from user in session.Query<User>()
                           where user.Username == username &&
                                 user.Password == password
                           select user;
             var users = usersQuery.ToArray();
-            return users;
+            return users.Count() != 0 ? users.First() : null;
         }
 
-        private static User[] GetUsersByUsername(string username, IDocumentSession session)
+        private static User GetUserByUsername(string username, IDocumentSession session)
         {
             var usersQuery = from user in session.Query<User>()
                           where user.Username == username
                           select user;
             var users = usersQuery.ToArray();
-            return users;
+            return users.Count() != 0 ? users.First() : null;
         }
 
-        public override string ApplicationName { get; set; }
-
-        public override void Initialize(string name, NameValueCollection config)
+        private static User GetUserByUsernameAndAnswer(string username, string answer, IDocumentSession session)
         {
-            documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
-            base.Initialize(name, config);
+            var usersQuery = from user in session.Query<User>()
+                             where user.Username == username &&
+                                   user.PasswordAnswer == answer
+                             select user;
+            var users = usersQuery.ToArray();
+            return users.Count() != 0 ? users.First() : null;
         }
 
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
         {
             using (var session = documentStore.OpenSession())
             {
-                var users = GetUsersByUsernameAndPassword(username, oldPassword, session);
-                if (users.Count() == 1)
+                var user = GetUserByUsernameAndPassword(username, oldPassword, session);
+                if (user != null)
                 {
-                    users[0].Password = newPassword;
-                    session.Store(users[0]);
+                    user.Password = newPassword;
+                    session.Store(user);
                     session.SaveChanges();
                     return true;
                 }
@@ -61,12 +114,12 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var users = GetUsersByUsernameAndPassword(username, password, session);
-                if (users.Count() == 1)
+                var user = GetUserByUsernameAndPassword(username, password, session);
+                if (user != null)
                 {
-                    users[0].PasswordQuestion = newPasswordQuestion;
-                    users[0].PasswordAnswer = newPasswordAnswer;
-                    session.Store(users[0]);
+                    user.PasswordQuestion = newPasswordQuestion;
+                    user.PasswordAnswer = newPasswordAnswer;
+                    session.Store(user);
                     session.SaveChanges();
                     return true;
                 }
@@ -92,10 +145,10 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var users = GetUsersByUsername(username, session);
-                if (users.Count() == 1)
+                var user = GetUserByUsername(username, session);
+                if (user != null)
                 {
-                    session.Delete(users[0]);
+                    session.Delete(user);
                     session.SaveChanges();
                     return true;
                 }
@@ -186,7 +239,7 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var user = GetUsersByUsername(username, session).First();
+                var user = GetUserByUsername(username, session);
                 return new BirdBrainMembershipUser(ProviderName, user.Username, user.Id, user.Email, "", "", true, false,
                                                    DateTime.MinValue, DateTime.MinValue, DateTime.MinValue,
                                                    DateTime.MinValue, DateTime.MinValue);
@@ -217,47 +270,59 @@ namespace BirdBrain
 
         public override int MaxInvalidPasswordAttempts
         {
-            get { throw new NotImplementedException(); }
+            get { return maxInvalidPasswordAttempts; }
         }
 
         public override int MinRequiredNonAlphanumericCharacters
         {
-            get { throw new NotImplementedException(); }
+            get { return minRequiredNonAlphanumericCharacters; }
         }
 
         public override int MinRequiredPasswordLength
         {
-            get { throw new NotImplementedException(); }
+            get { return minRequiredPasswordLength; }
         }
 
         public override int PasswordAttemptWindow
         {
-            get { throw new NotImplementedException(); }
+            get { return passwordAttemptWindow; }
         }
 
         public override MembershipPasswordFormat PasswordFormat
         {
-            get { throw new NotImplementedException(); }
+            get { return passwordFormat; }
         }
 
         public override string PasswordStrengthRegularExpression
         {
-            get { throw new NotImplementedException(); }
+            get { return passwordStrengthRegularExpression; }
         }
 
         public override bool RequiresQuestionAndAnswer
         {
-            get { throw new NotImplementedException(); }
+            get { return requiresQuestionAndAnswer; }
         }
 
         public override bool RequiresUniqueEmail
         {
-            get { throw new NotImplementedException(); }
+            get { return true; }
         }
 
         public override string ResetPassword(string username, string answer)
         {
-            throw new NotImplementedException();
+            using (var session = documentStore.OpenSession())
+            {
+                var user = GetUserByUsernameAndAnswer(username, answer, session);
+                if (user != null)
+                {
+                    var password = Membership.GeneratePassword(MinRequiredPasswordLength, MinRequiredNonAlphanumericCharacters);
+                    user.Password = password;
+                    session.Store(user);
+                    session.SaveChanges();
+                    return password;
+                }
+                throw new MembershipPasswordException("Unable to reset password.");
+            }
         }
 
         public override bool UnlockUser(string userName)
@@ -274,8 +339,7 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var users = GetUsersByUsernameAndPassword(username, password, session);
-                return users.Count() != 0;
+                return GetUserByUsernameAndPassword(username, password, session) != null;
             }
         }
     }
