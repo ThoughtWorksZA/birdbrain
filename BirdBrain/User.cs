@@ -34,6 +34,7 @@ namespace BirdBrain
             LastLockedOut = DateTime.MinValue;
             IsApproved = true;
             Comment = "";
+            Roles = new string[] {};
         }
 
         public User()

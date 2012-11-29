@@ -1,36 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Configuration.Provider;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web.Security;
 using Microsoft.Practices.ServiceLocation;
-using NLog;
-using Raven.Client;
 using Raven.Client.Document;
+using Raven.Client.UniqueConstraints;
 
 namespace BirdBrain
 {
     public class BirdBrainRoleProvider : RoleProvider
     {
-        private readonly string providerName = "BirdBrainMembership";
-
-        private readonly DocumentStore documentStore;
-
-        private readonly Logger logger;
+        private DocumentStore documentStore;
 
         public override string ApplicationName { get; set; }
 
-        public BirdBrainRoleProvider()
+        public override void Initialize(string name, NameValueCollection config)
         {
-            logger = LogManager.GetLogger(typeof(BirdBrainRoleProvider).Name);
+            base.Initialize(name, config);
             documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
         }
 
         public override bool IsUserInRole(string username, string roleName)
         {
-            throw new NotImplementedException();
+            using (var session = documentStore.OpenSession())
+            {
+                var users = from _user in session.Query<User>()
+                            where _user.Username == username
+                            select _user;
+                var user = users.ToArray().First();
+                return user.Roles.Contains(roleName);
+            }
         }
 
         public override string[] GetRolesForUser(string username)
@@ -56,31 +56,15 @@ namespace BirdBrain
             var role = new Role(roleName);
             using (var session = documentStore.OpenSession())
             {
-//                var roles = from role1 in session.Query<Role>()
-//                            where role1.Name == "role 1"
-//                            select role1;
-//                Console.WriteLine("roles.any?");
-//                var rolesList = roles.ToList();
-//                if (rolesList.Count() == 0)
-//                {
-                    Console.WriteLine("saving role");
+                session.Advanced.UseOptimisticConcurrency = true;
+                try
+                {
                     session.Store(role);
                     session.SaveChanges();
-//                }
-            }
-        }
-
-        public void dostuff()
-        {
-            using (var session = documentStore.OpenSession())
-            {
-                var results = session.Query<Role>()
-                                     .Where(x => x.Name == "role1")
-                                     .ToList();
-                if (!results.Any())
+                }
+                catch
                 {
-                    session.Store(new Role("role1"));
-                    session.SaveChanges();
+                    throw new ProviderException("The role already exists.");
                 }
             }
         }
@@ -127,28 +111,20 @@ namespace BirdBrain
             {
                 throw new ArgumentException("Role name can not be empty");
             }
-//            Console.WriteLine(roleNames.First());
-//
-//            using (var session = documentStore.OpenSession())
-//            {
-//                foreach (var username in usernames)
-//                {
-//                    var user1 = (from user in session.Query<User>()
-//                                 where user.Username == username
-//                                 select user
-//                                 ).ToArray().First();
-//                    if (user1.Roles == null)
-//                    {
-//                        user1.Roles = new string[] {};
-//                    }
-//                    user1.Roles = user1.Roles.Concat(roleNames).ToArray();
-//                    
-//                    Console.WriteLine(roleNames.First());
-//                    Console.WriteLine(user1.Roles);
-//                    session.Store(user1);
-//                    session.SaveChanges();
-//                }
-//            }
+
+            using (var session = documentStore.OpenSession())
+            {
+                foreach (var username in usernames)
+                {
+                    var users = from _user in session.Query<User>()
+                                where _user.Username == username
+                                select _user;
+                    var user = users.ToArray().First();
+                    user.Roles = user.Roles.Union(roleNames).ToArray();
+                    session.Store(user);
+                    session.SaveChanges();
+                }
+            }
         }
 
         public override void RemoveUsersFromRoles(string[] usernames, string[] roleNames)
