@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web.Security;
 using Microsoft.Practices.ServiceLocation;
 using NLog;
+using Raven.Client;
 using Raven.Client.Document;
 
 namespace BirdBrain
@@ -51,11 +52,36 @@ namespace BirdBrain
             {
                 throw new ArgumentException("Role name can not have a comma in it");
             }
+            
             var role = new Role(roleName);
             using (var session = documentStore.OpenSession())
             {
-                session.Store(role);
-                session.SaveChanges();
+//                var roles = from role1 in session.Query<Role>()
+//                            where role1.Name == "role 1"
+//                            select role1;
+//                Console.WriteLine("roles.any?");
+//                var rolesList = roles.ToList();
+//                if (rolesList.Count() == 0)
+//                {
+                    Console.WriteLine("saving role");
+                    session.Store(role);
+                    session.SaveChanges();
+//                }
+            }
+        }
+
+        public void dostuff()
+        {
+            using (var session = documentStore.OpenSession())
+            {
+                var results = session.Query<Role>()
+                                     .Where(x => x.Name == "role1")
+                                     .ToList();
+                if (!results.Any())
+                {
+                    session.Store(new Role("role1"));
+                    session.SaveChanges();
+                }
             }
         }
 
@@ -85,7 +111,44 @@ namespace BirdBrain
 
         public override void AddUsersToRoles(string[] usernames, string[] roleNames)
         {
-            throw new NotImplementedException();
+            if (usernames.Contains(null))
+            {
+                throw new ArgumentNullException("Username can not be null");
+            }
+            if (usernames.Contains(""))
+            {
+                throw new ArgumentException("Username can not be empty");
+            }
+            if (roleNames.Contains(null))
+            {
+                throw new ArgumentNullException("Role name can not be null");
+            }
+            if (roleNames.Contains(""))
+            {
+                throw new ArgumentException("Role name can not be empty");
+            }
+//            Console.WriteLine(roleNames.First());
+//
+//            using (var session = documentStore.OpenSession())
+//            {
+//                foreach (var username in usernames)
+//                {
+//                    var user1 = (from user in session.Query<User>()
+//                                 where user.Username == username
+//                                 select user
+//                                 ).ToArray().First();
+//                    if (user1.Roles == null)
+//                    {
+//                        user1.Roles = new string[] {};
+//                    }
+//                    user1.Roles = user1.Roles.Concat(roleNames).ToArray();
+//                    
+//                    Console.WriteLine(roleNames.First());
+//                    Console.WriteLine(user1.Roles);
+//                    session.Store(user1);
+//                    session.SaveChanges();
+//                }
+//            }
         }
 
         public override void RemoveUsersFromRoles(string[] usernames, string[] roleNames)
