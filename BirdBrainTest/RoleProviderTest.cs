@@ -229,9 +229,28 @@ namespace BirdBrainTest
             provider.CreateRole(roles[1]);
             provider.AddUsersToRoles(new string[] { "test" }, roles);
             var userRoles = provider.GetRolesForUser("test");
-            for (var i = 0; i < roles.Length; i++ )
+            foreach (string role in roles)
             {
-                Assert.IsTrue(userRoles.Contains(roles[i]), string.Format("User roles [{0}] should contain the role [{1}].", userRoles, roles[i]));
+                Assert.IsTrue(userRoles.Contains(role), string.Format("User roles [{0}] should contain the role [{1}].", string.Join(", ", userRoles), role));
+            }
+        }
+
+        [TestMethod]
+        public void ShouldKnowHowToGetUsersInRole()
+        {
+            MembershipCreateStatus status;
+            membershipProvider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            membershipProvider.CreateUser("real", "anotherpassword", "err@herp.com", "What Is that?", "Derp", true, null, out status);
+            const string role = "role 1";
+            provider.CreateRole(role);
+            var expectedUsers = new string[] {"test", "real"};
+            provider.AddUsersToRoles(expectedUsers, new string[] {role});
+
+            var usersInARole = provider.GetUsersInRole(role);
+
+            foreach (var user in expectedUsers)
+            {
+                Assert.IsTrue(usersInARole.Contains(user), string.Format("Role [{0}] should contain the users [{1}].", role, string.Join(", ", expectedUsers)));
             }
         }
     }

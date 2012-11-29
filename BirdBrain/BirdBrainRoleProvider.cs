@@ -134,7 +134,13 @@ namespace BirdBrain
 
         public override string[] GetUsersInRole(string roleName)
         {
-            throw new NotImplementedException();
+            using (var session = documentStore.OpenSession())
+            {
+                var usersQuery = from user in session.Query<User>()
+                                 where user.Roles.Contains(roleName)
+                                 select user.Username;
+                return usersQuery.ToArray();
+            }
         }
 
         public override string[] GetAllRoles()
