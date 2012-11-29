@@ -49,6 +49,7 @@
     <Reference Include="System.Web.ApplicationServices" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BirdBrainHelper.cs" />
     <Compile Include="BirdBrainMembershipProvider.cs" />
     <Compile Include="BirdBrainMembershipUser.cs" />
     <Compile Include="BirdBrainRoleProvider.cs" />

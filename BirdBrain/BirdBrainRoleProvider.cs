@@ -5,7 +5,6 @@ using System.Linq;
 using System.Web.Security;
 using Microsoft.Practices.ServiceLocation;
 using Raven.Client.Document;
-using Raven.Client.UniqueConstraints;
 
 namespace BirdBrain
 {
@@ -25,17 +24,18 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var users = from _user in session.Query<User>()
-                            where _user.Username == username
-                            select _user;
-                var user = users.ToArray().First();
+                var user = BirdBrainHelper.GetUserByUsername(username, session);
                 return user.Roles.Contains(roleName);
             }
         }
 
         public override string[] GetRolesForUser(string username)
         {
-            throw new NotImplementedException();
+            using (var session = documentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByUsername(username, session);
+                return user.Roles;
+            }
         }
 
         public override void CreateRole(string roleName)

@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web.Security;
 using Microsoft.Practices.ServiceLocation;
-using Raven.Client;
 using Raven.Client.Document;
 
 namespace BirdBrain
@@ -70,40 +69,11 @@ namespace BirdBrain
             return hashedPassword;
         }
 
-        private static User GetUserByUsernameAndPassword(string username, string password, IDocumentSession session)
-        {
-            var usersQuery = from user in session.Query<User>()
-                          where user.Username == username &&
-                                user.Password == password
-                          select user;
-            var users = usersQuery.ToArray();
-            return users.Count() != 0 ? users.First() : null;
-        }
-
-        private static User GetUserByUsername(string username, IDocumentSession session)
-        {
-            var usersQuery = from user in session.Query<User>()
-                          where user.Username == username
-                          select user;
-            var users = usersQuery.ToArray();
-            return users.Count() != 0 ? users.First() : null;
-        }
-
-        private static User GetUserByUsernameAndAnswer(string username, string answer, IDocumentSession session)
-        {
-            var usersQuery = from user in session.Query<User>()
-                             where user.Username == username &&
-                                   user.PasswordAnswer == answer
-                             select user;
-            var users = usersQuery.ToArray();
-            return users.Count() != 0 ? users.First() : null;
-        }
-
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
         {
             using (var session = documentStore.OpenSession())
             {
-                var user = GetUserByUsernameAndPassword(username, HashPassword(oldPassword), session);
+                var user = BirdBrainHelper.GetUserByUsernameAndPassword(username, HashPassword(oldPassword), session);
                 if (user != null)
                 {
                     user.Password = HashPassword(newPassword);
@@ -119,7 +89,7 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var user = GetUserByUsernameAndPassword(username, HashPassword(password), session);
+                var user = BirdBrainHelper.GetUserByUsernameAndPassword(username, HashPassword(password), session);
                 if (user != null)
                 {
                     user.PasswordQuestion = newPasswordQuestion;
@@ -148,7 +118,7 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var user = GetUserByUsername(username, session);
+                var user = BirdBrainHelper.GetUserByUsername(username, session);
                 if (user != null)
                 {
                     session.Delete(user);
@@ -238,7 +208,7 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var user = GetUserByUsername(username, session);
+                var user = BirdBrainHelper.GetUserByUsername(username, session);
                 if (user != null)
                 {
                     if (userIsOnline)
@@ -317,7 +287,7 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var user = GetUserByUsernameAndAnswer(username, answer, session);
+                var user = BirdBrainHelper.GetUserByUsernameAndAnswer(username, answer, session);
                 if (user != null)
                 {
                     var password = Membership.GeneratePassword(MinRequiredPasswordLength, MinRequiredNonAlphanumericCharacters);
@@ -357,7 +327,7 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var user = GetUserByUsernameAndPassword(username, HashPassword(password), session);
+                var user = BirdBrainHelper.GetUserByUsernameAndPassword(username, HashPassword(password), session);
                 if (user != null)
                 {
                     user.LastActive = DateTime.Now;

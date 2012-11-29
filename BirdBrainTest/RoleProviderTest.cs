@@ -218,5 +218,21 @@ namespace BirdBrainTest
             provider.AddUsersToRoles(new string[] { "test" }, new string[] { "role 1" });
             Assert.IsTrue(provider.IsUserInRole("test", "role 1"));
         }
+
+        [TestMethod]
+        public void ShouldKnowHowToGetRolesForAUser()
+        {
+            MembershipCreateStatus status;
+            membershipProvider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            var roles = new string[] {"role 1", "role 2"};
+            provider.CreateRole(roles[0]);
+            provider.CreateRole(roles[1]);
+            provider.AddUsersToRoles(new string[] { "test" }, roles);
+            var userRoles = provider.GetRolesForUser("test");
+            for (var i = 0; i < roles.Length; i++ )
+            {
+                Assert.IsTrue(userRoles.Contains(roles[i]), string.Format("User roles [{0}] should contain the role [{1}].", userRoles, roles[i]));
+            }
+        }
     }
 }
