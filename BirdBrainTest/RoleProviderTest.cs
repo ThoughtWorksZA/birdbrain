@@ -253,5 +253,66 @@ namespace BirdBrainTest
                 Assert.IsTrue(usersInARole.Contains(user), string.Format("Role [{0}] should contain the users [{1}].", role, string.Join(", ", expectedUsers)));
             }
         }
+
+        [TestMethod]
+        [ExpectedException(typeof(ProviderException), "Expected <ProviderException> when role does not exist.")]
+        public void ShouldKnowThatUsersCannotBeFoundForNonexistantRoles()
+        {
+            MembershipCreateStatus status;
+            membershipProvider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            provider.FindUsersInRole("nonexistant role", "test");
+        }
+
+        [TestMethod]
+        public void ShouldKnowThatUserCanBeFoundForRole()
+        {
+            MembershipCreateStatus status;
+            membershipProvider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            provider.CreateRole("role");
+            provider.AddUsersToRoles(new string[] {"test"}, new string[] { "role" });
+            Assert.AreEqual("test", provider.FindUsersInRole("role", "test").First());
+        }
+
+        [TestMethod]
+        public void ShouldKnowThatNonexistantUserCannotBeFoundForRole()
+        {
+            provider.CreateRole("role");
+            Assert.AreEqual(0, provider.FindUsersInRole("role", "test").Length);
+        }
+
+        [TestMethod]
+        public void ShouldKnowHowToRemoveUsersFromRoles()
+        {
+            MembershipCreateStatus status;
+            membershipProvider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            membershipProvider.CreateUser("real", "anotherpassword", "err@herp.com", "What Is that?", "Derp", true, null, out status);
+            const string role = "role 1";
+            provider.CreateRole(role);
+            var expectedUsers = new string[] { "test", "real" };
+            provider.AddUsersToRoles(expectedUsers, new string[] { role });
+            provider.RemoveUsersFromRoles(expectedUsers, new string[] { role });
+            Assert.AreEqual(0, provider.GetUsersInRole(role).Length);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof (ProviderException), "Expected <ProviderException> when user does not exist.")]
+        public void ShouldThrowProviderExceptionWhenRoleNameOrUserNameIsNotExistant()
+        {
+            provider.CreateRole("role");
+            provider.RemoveUsersFromRoles(new string[] {"a name"}, new string[] {"role"});
+        }
+
+        [TestMethod]
+        public void ShouldKnowHowToDeleteRoleWithUsers()
+        {
+            MembershipCreateStatus status;
+            membershipProvider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            membershipProvider.CreateUser("real", "anotherpassword", "err@herp.com", "What Is that?", "Derp", true, null, out status);
+            const string role = "role 1";
+            provider.CreateRole(role);
+            var expectedUsers = new string[] { "test", "real" };
+            provider.AddUsersToRoles(expectedUsers, new string[] { role });
+            Assert.IsTrue(provider.DeleteRole(role, false));
+        }
     }
 }

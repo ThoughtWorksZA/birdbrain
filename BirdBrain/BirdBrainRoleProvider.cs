@@ -34,7 +34,7 @@ namespace BirdBrain
             using (var session = documentStore.OpenSession())
             {
                 var user = BirdBrainHelper.GetUserByUsername(username, session);
-                return user.Roles;
+                return user != null ? user.Roles : new string[] {};
             }
         }
 
@@ -71,7 +71,33 @@ namespace BirdBrain
 
         public override bool DeleteRole(string roleName, bool throwOnPopulatedRole)
         {
-            throw new NotImplementedException();
+            if (!RoleExists(roleName))
+            {
+                throw new ArgumentException(string.Format("Role [{0}] does not exist.", roleName));
+            }
+            using (var session = documentStore.OpenSession())
+            {
+                var usersQuery = from _user in session.Query<User>()
+                                 where _user.Roles.Contains(roleName)
+                                 select _user;
+                var users = usersQuery.ToArray();
+                if (users.Any() && !throwOnPopulatedRole)
+                {
+                    foreach (var user in users)
+                    {
+                        var roles = user.Roles.ToList();
+                        roles.Remove(roleName);
+                        user.Roles = roles.ToArray();
+                    }
+                }
+                else
+                {
+                    throw new ProviderException(string.Format("Role [{0}] is in use and cannot be deleted.", roleName));
+                }
+                session.Delete(session.Load<Role>(new Role(roleName).Id));
+                session.SaveChanges();
+                return true;
+            }
         }
 
         public override bool RoleExists(string roleName)
@@ -129,7 +155,23 @@ namespace BirdBrain
 
         public override void RemoveUsersFromRoles(string[] usernames, string[] roleNames)
         {
-            throw new NotImplementedException();
+            using (var session = documentStore.OpenSession())
+            {
+                foreach (var username in usernames)
+                {
+                    var users = from _user in session.Query<User>()
+                                where _user.Username == username
+                                select _user;
+                    if (users.ToArray().Length == 0)
+                    {
+                        throw new ProviderException(string.Format("The user [{0}] does not exist.", username));
+                    }
+                    var user = users.ToArray().First();
+                    user.Roles = user.Roles.Except(roleNames).ToArray();
+                    session.Store(user);
+                }
+                session.SaveChanges();
+            }
         }
 
         public override string[] GetUsersInRole(string roleName)
@@ -153,7 +195,15 @@ namespace BirdBrain
 
         public override string[] FindUsersInRole(string roleName, string usernameToMatch)
         {
-            throw new NotImplementedException();
+            if (!RoleExists(roleName))
+            {
+                throw new ProviderException("The specified role does not exist.");
+            }
+            if (GetRolesForUser(usernameToMatch).Contains(roleName))
+            {
+                return new string[] {usernameToMatch};
+            }
+            return new string[] {};
         }
 
     }
