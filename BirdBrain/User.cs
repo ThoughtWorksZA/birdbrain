@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Web.Security;
 
 namespace BirdBrain
 {
@@ -15,6 +12,13 @@ namespace BirdBrain
         public string PasswordQuestion { get; set; }
         public string PasswordAnswer { get; set; }
         public string[] Roles { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime LastLogin { get; set; }
+        public DateTime LastActive { get; set; }
+        public DateTime LastPasswordChange { get; set; }
+        public DateTime LastLockedOut { get; set; }
+        public bool IsApproved { get; set; }
+        public string Comment { get; set; }
 
         public User(string username, string password, string email, string passwordQuestion, string passwordAnswer)
         {
@@ -23,6 +27,17 @@ namespace BirdBrain
             Email = email;
             PasswordQuestion = passwordQuestion;
             PasswordAnswer = passwordAnswer;
+            Created = DateTime.Now;
+            LastLogin = DateTime.MinValue;
+            LastActive = DateTime.MinValue;
+            LastPasswordChange = DateTime.MinValue;
+            LastLockedOut = DateTime.MinValue;
+            IsApproved = true;
+            Comment = "";
+        }
+
+        public User()
+        {
         }
     }
 }

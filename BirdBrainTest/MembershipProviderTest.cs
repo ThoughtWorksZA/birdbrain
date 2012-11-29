@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.Configuration;
 using System.Linq;
+using System.Threading;
 using System.Web.Configuration;
 using System.Web.Security;
 using BirdBrain;
@@ -9,6 +10,7 @@ using Microsoft.Practices.ServiceLocation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Raven.Client.Document;
 using Raven.Client.Embedded;
+using Raven.Database.Server;
 
 namespace BirdBrainTest
 {
@@ -24,7 +26,12 @@ namespace BirdBrainTest
             serviceLocator = new TestServiceLocator();
             if (serviceLocator.GetInstance<DocumentStore>() == null)
             {
-                var documentStore = new EmbeddableDocumentStore {RunInMemory = true};
+                var documentStore = new EmbeddableDocumentStore
+                {
+                    RunInMemory = true,
+                    UseEmbeddedHttpServer = true
+                };
+                NonAdminHttp.EnsureCanListenToWhenInNonAdminContext(8080);
                 documentStore.Initialize();
                 serviceLocator.DoSetDefaultInstance(typeof(DocumentStore), documentStore);
             }
@@ -80,6 +87,7 @@ namespace BirdBrainTest
             MembershipCreateStatus status;
             provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
             Assert.IsTrue(provider.ChangePassword("test", "password", "newpassword"));
+            Thread.Sleep(100);
             Assert.IsTrue(provider.ValidateUser("test", "newpassword"));
         }
 
@@ -105,7 +113,7 @@ namespace BirdBrainTest
         public void ShouldKnowHowToDeleteUserExcludingRelatedData()
         {
             MembershipCreateStatus status;
-            var createdUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
             Assert.IsTrue(provider.DeleteUser("test", false));
             var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
             var session = documentStore.OpenSession();
@@ -235,7 +243,9 @@ namespace BirdBrainTest
         {
             MembershipCreateStatus status;
             provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            Thread.Sleep(500);
             var password = provider.ResetPassword("test", "yes");
+            Thread.Sleep(500);
             Assert.IsTrue(provider.ValidateUser("test", password));
         }
 
@@ -275,7 +285,7 @@ namespace BirdBrainTest
         [TestMethod]
         public void ShouldKnowPasswordFormat()
         {
-            Assert.AreEqual(MembershipPasswordFormat.Clear, provider.PasswordFormat);
+            Assert.AreEqual(MembershipPasswordFormat.Hashed, provider.PasswordFormat);
         }
 
         [TestMethod]
@@ -294,6 +304,65 @@ namespace BirdBrainTest
         public void ShouldKnowRequiresUniqueEmail()
         {
             Assert.AreEqual(true, provider.RequiresUniqueEmail);
+        }
+
+        [TestMethod]
+        public void ShouldKnowAboutLastActivity()
+        {
+            MembershipCreateStatus status;
+            var createdUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            var activeUser = provider.GetUser("test", true);
+            Assert.AreNotEqual(createdUser.LastActivityDate, activeUser.LastActivityDate);
+        }
+
+        [TestMethod]
+        public void ShouldKnowAboutLastLogin()
+        {
+            MembershipCreateStatus status;
+            var createdUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            provider.ValidateUser("test", "password");
+            var loggedInUser = provider.GetUser("test", false);
+            Assert.AreNotEqual(createdUser.LastLoginDate, loggedInUser.LastLoginDate);
+        }
+
+        [TestMethod]
+        public void ShouldKnowAboutNumberOfOnlineUsers()
+        {
+            MembershipCreateStatus status;
+            provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            provider.ValidateUser("test", "password");
+            Assert.AreEqual(1, provider.GetNumberOfUsersOnline());
+            provider.CreateUser("test2", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            Thread.Sleep(500);
+            provider.GetUser("test2", true);
+            Thread.Sleep(500);
+            Assert.AreEqual(2, provider.GetNumberOfUsersOnline());
+        }
+
+        [TestMethod]
+        public void ShouldKnowHowToUpdateUser()
+        {
+            MembershipCreateStatus status;
+            var createdUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
+            var newEmail = createdUser.Email = "derp2@herp.com";
+            var isApproved = createdUser.IsApproved = false;
+            var dateTime = DateTime.Now;
+            createdUser.LastLoginDate = dateTime;
+            createdUser.LastActivityDate = dateTime;
+            var comment = createdUser.Comment = "derp";
+            provider.UpdateUser(createdUser);
+            var updatedUser = provider.GetUser("test", false);
+            Assert.AreEqual(newEmail, updatedUser.Email);
+            Assert.AreEqual(isApproved, updatedUser.IsApproved);
+            Assert.AreEqual(dateTime, updatedUser.LastLoginDate);
+            Assert.AreEqual(dateTime, updatedUser.LastActivityDate);
+            Assert.AreEqual(comment, updatedUser.Comment);
+        }
+
+        [TestMethod]
+        public void ShouldKnowHowToUnlockUser()
+        {
+            Assert.IsTrue(provider.UnlockUser("bob"));
         }
     }
 }
