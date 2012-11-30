@@ -17,12 +17,12 @@ namespace BirdBrainTest
     [TestClass]
     public class MembershipProviderTest
     {
-        private BirdBrainMembershipProvider provider;
+        private EmbeddedBirdBrainMembershipProvider provider;
 
         [TestInitialize]
         public void Setup()
         {
-            provider = new BirdBrainMembershipProvider();
+            provider = new EmbeddedBirdBrainMembershipProvider();
             var section = (MembershipSection)ConfigurationManager.GetSection("system.web/membership");
             var config = section.Providers["BirdBrainMembership"].Parameters;
             provider.Initialize("MyApp", config);

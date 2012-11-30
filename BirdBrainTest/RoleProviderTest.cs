@@ -24,14 +24,14 @@ namespace BirdBrainTest
     [TestClass]
     public class RoleProviderTest
     {
-        private BirdBrainRoleProvider provider;
-        private BirdBrainMembershipProvider membershipProvider;
+        private EmbeddedBirdBrainRoleProvider provider;
+        private EmbeddedBirdBrainMembershipProvider membershipProvider;
 
         [TestInitialize]
         public void Setup()
         {
-            membershipProvider = new BirdBrainMembershipProvider();
-            provider = new BirdBrainRoleProvider();
+            membershipProvider = new EmbeddedBirdBrainMembershipProvider();
+            provider = new EmbeddedBirdBrainRoleProvider();
             var section = (MembershipSection)ConfigurationManager.GetSection("system.web/membership");
             var config = section.Providers["BirdBrainMembership"].Parameters;
             membershipProvider.Initialize("MyApp", config);

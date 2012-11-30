@@ -19,11 +19,7 @@ namespace BirdBrain
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
-            DocumentStore = new EmbeddableDocumentStore
-            {
-                ConnectionStringName = ConnectionStringName
-            };
-            DocumentStore.Initialize();
+            InitializeDocumentStore();
         }
 
         public void Dispose()
@@ -38,6 +34,15 @@ namespace BirdBrain
             {
                 documentStore = value;
             }
+        }
+
+        protected virtual void InitializeDocumentStore()
+        {
+            DocumentStore = new DocumentStore
+            {
+                ConnectionStringName = BirdBrainRoleProvider.ConnectionStringName,
+            };
+            DocumentStore.Initialize();
         }
 
         public override bool IsUserInRole(string username, string roleName)

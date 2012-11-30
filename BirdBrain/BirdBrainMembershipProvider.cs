@@ -28,11 +28,7 @@ namespace BirdBrain
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
-            DocumentStore = new EmbeddableDocumentStore
-            {
-                ConnectionStringName = BirdBrainRoleProvider.ConnectionStringName
-            };
-            DocumentStore.Initialize();
+            InitializeDocumentStore();
             if (config["minRequiredPasswordLength"] != null)
             {
                 minRequiredPasswordLength = Int32.Parse(config["minRequiredPasswordLength"]);
@@ -65,6 +61,15 @@ namespace BirdBrain
             {
                 requiresQuestionAndAnswer = Boolean.Parse(config["requiresQuestionAndAnswer"]);
             }
+        }
+
+        protected virtual void InitializeDocumentStore()
+        {
+            DocumentStore = new DocumentStore
+                {
+                    ConnectionStringName = BirdBrainRoleProvider.ConnectionStringName,
+                };
+            DocumentStore.Initialize();
         }
 
         public void Dispose()
