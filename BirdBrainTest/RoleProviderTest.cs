@@ -25,47 +25,25 @@ namespace BirdBrainTest
     public class RoleProviderTest
     {
         private BirdBrainRoleProvider provider;
-        private MembershipProvider membershipProvider;
-        private TestServiceLocator serviceLocator;
+        private BirdBrainMembershipProvider membershipProvider;
 
         [TestInitialize]
         public void Setup()
         {
-            serviceLocator = new TestServiceLocator();
-            if (serviceLocator.GetInstance<DocumentStore>() == null)
-            {
-                var documentStore = new EmbeddableDocumentStore
-                {
-                    RunInMemory = true,
-                    UseEmbeddedHttpServer = true,
-//                    Configuration =
-//                    {
-//                        PluginsDirectory = Path.GetDirectoryName(typeof(UniqueConstraintsPutTrigger).Assembly.Location),
-//                    }
-                };
-//                documentStore.Configuration.Settings["Raven/Encryption/Key"] = "ausdj1g2PhUjtSWx6fa+wQzBM1Vf0X8KQCj6tlIq4cU=";
-//                documentStore.Configuration.Settings["Raven/ActiveBundles"] = "UniqueConstraints";
-                NonAdminHttp.EnsureCanListenToWhenInNonAdminContext(8080);
-                documentStore.RegisterListener(new UniqueConstraintsStoreListener());
-                documentStore.Initialize();
-                serviceLocator.DoSetDefaultInstance(typeof(DocumentStore), documentStore);
-            }
-            ServiceLocator.SetLocatorProvider(() => serviceLocator);
             membershipProvider = new BirdBrainMembershipProvider();
             provider = new BirdBrainRoleProvider();
             var section = (MembershipSection)ConfigurationManager.GetSection("system.web/membership");
             var config = section.Providers["BirdBrainMembership"].Parameters;
             membershipProvider.Initialize("MyApp", config);
             provider.Initialize("MyApp", config);
-
+            membershipProvider.DocumentStore = provider.DocumentStore;
         }
 
         [TestCleanup]
         public void Cleanup()
         {
-            var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
-            documentStore.Dispose();
-            serviceLocator.DoSetClearDefaultInstance(typeof(DocumentStore));
+            membershipProvider.Dispose();
+            provider.Dispose();
         }
 
         [TestMethod]
@@ -101,8 +79,7 @@ namespace BirdBrainTest
         public void CreateRoleShouldCreateUserWhenRoleNameIsValid()
         {
             provider.CreateRole("test role");
-            var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
-            var session = documentStore.OpenSession();
+            var session = provider.DocumentStore.OpenSession();
             var roles = from role in session.Query<Role>()
                           where role.Name == "test role"
                           select role;
@@ -198,8 +175,7 @@ namespace BirdBrainTest
             membershipProvider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
             provider.CreateRole("role 1");
             provider.AddUsersToRoles(new string[] {"test"}, new string[] {"role 1"});
-            var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
-            using (var session = documentStore.OpenSession())
+            using (var session = provider.DocumentStore.OpenSession())
             {
                 var users = from user in session.Query<User>()
                             where user.Username == "test"

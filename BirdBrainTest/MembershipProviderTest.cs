@@ -18,24 +18,10 @@ namespace BirdBrainTest
     public class MembershipProviderTest
     {
         private BirdBrainMembershipProvider provider;
-        private TestServiceLocator serviceLocator;
 
         [TestInitialize]
         public void Setup()
         {
-            serviceLocator = new TestServiceLocator();
-            if (serviceLocator.GetInstance<DocumentStore>() == null)
-            {
-                var documentStore = new EmbeddableDocumentStore
-                {
-                    RunInMemory = true,
-                    UseEmbeddedHttpServer = true
-                };
-                NonAdminHttp.EnsureCanListenToWhenInNonAdminContext(8080);
-                documentStore.Initialize();
-                serviceLocator.DoSetDefaultInstance(typeof(DocumentStore), documentStore);
-            }
-            ServiceLocator.SetLocatorProvider(() => serviceLocator);
             provider = new BirdBrainMembershipProvider();
             var section = (MembershipSection)ConfigurationManager.GetSection("system.web/membership");
             var config = section.Providers["BirdBrainMembership"].Parameters;
@@ -45,9 +31,7 @@ namespace BirdBrainTest
         [TestCleanup]
         public void Cleanup()
         {
-            var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
-            documentStore.Dispose();
-            serviceLocator.DoSetClearDefaultInstance(typeof(DocumentStore));
+            provider.Dispose();
         }
 
         [TestMethod]
@@ -57,8 +41,7 @@ namespace BirdBrainTest
             var membershipUser = provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
             Assert.AreEqual(MembershipCreateStatus.Success, status);
             Assert.AreEqual("test", membershipUser.UserName);
-            var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
-            var session = documentStore.OpenSession();
+            var session = provider.DocumentStore.OpenSession();
             var results = from user in session.Query<User>()
                           where user.Username == "test"
                           select user;
@@ -115,8 +98,7 @@ namespace BirdBrainTest
             MembershipCreateStatus status;
             provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
             Assert.IsTrue(provider.DeleteUser("test", false));
-            var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
-            var session = documentStore.OpenSession();
+            var session = provider.DocumentStore.OpenSession();
             var results = from user in session.Query<User>()
                           where user.Username == "test"
                           select user;
@@ -150,8 +132,7 @@ namespace BirdBrainTest
             MembershipCreateStatus status;
             provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
             Assert.IsTrue(provider.ChangePasswordQuestionAndAnswer("test", "password", "Is this for real?", "no"));
-            var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
-            var session = documentStore.OpenSession();
+            var session = provider.DocumentStore.OpenSession();
             var results = from user in session.Query<User>()
                           where user.Username == "test"
                           select user;
@@ -164,8 +145,7 @@ namespace BirdBrainTest
         {
             MembershipCreateStatus status;
             provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
-            var documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
-            var session = documentStore.OpenSession();
+            var session = provider.DocumentStore.OpenSession();
             var results = from user in session.Query<User>()
                           where user.Username == "test"
                           select user;

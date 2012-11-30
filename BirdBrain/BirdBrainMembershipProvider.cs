@@ -6,6 +6,7 @@ using System.Text;
 using System.Web.Security;
 using Microsoft.Practices.ServiceLocation;
 using Raven.Client.Document;
+using Raven.Client.Embedded;
 
 namespace BirdBrain
 {
@@ -27,6 +28,11 @@ namespace BirdBrain
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
+            DocumentStore = new EmbeddableDocumentStore
+            {
+                ConnectionStringName = BirdBrainRoleProvider.ConnectionStringName
+            };
+            DocumentStore.Initialize();
             if (config["minRequiredPasswordLength"] != null)
             {
                 minRequiredPasswordLength = Int32.Parse(config["minRequiredPasswordLength"]);
@@ -59,7 +65,20 @@ namespace BirdBrain
             {
                 requiresQuestionAndAnswer = Boolean.Parse(config["requiresQuestionAndAnswer"]);
             }
-            documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
+        }
+
+        public void Dispose()
+        {
+            documentStore.Dispose();
+        }
+
+        public DocumentStore DocumentStore
+        {
+            get { return documentStore; }
+            set
+            {
+                documentStore = value;
+            }
         }
 
         private static string HashPassword(string password)

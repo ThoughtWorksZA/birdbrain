@@ -5,19 +5,39 @@ using System.Linq;
 using System.Web.Security;
 using Microsoft.Practices.ServiceLocation;
 using Raven.Client.Document;
+using Raven.Client.Embedded;
 
 namespace BirdBrain
 {
     public class BirdBrainRoleProvider : RoleProvider
     {
         private DocumentStore documentStore;
+        public static readonly string ConnectionStringName = "BirdBrain";
 
         public override string ApplicationName { get; set; }
 
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
-            documentStore = ServiceLocator.Current.GetInstance<DocumentStore>();
+            DocumentStore = new EmbeddableDocumentStore
+            {
+                ConnectionStringName = ConnectionStringName
+            };
+            DocumentStore.Initialize();
+        }
+
+        public void Dispose()
+        {
+            documentStore.Dispose();
+        }
+
+        public DocumentStore DocumentStore
+        {
+            get { return documentStore; }
+            set
+            {
+                documentStore = value;
+            }
         }
 
         public override bool IsUserInRole(string username, string roleName)
