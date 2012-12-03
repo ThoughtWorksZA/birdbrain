@@ -15,6 +15,13 @@ namespace BirdBrainTest
         }
     }
 
+    class EmbeddedBirdBrainExtendedMembershipProvider : BirdBrainExtendedMembershipProvider
+    {
+        public EmbeddedBirdBrainExtendedMembershipProvider() : base(new EmbeddedBirdBrainMembershipProvider())
+        {
+        }
+    }
+
     class EmbeddedBirdBrainRoleProvider : BirdBrainRoleProvider
     {
         protected override void InitializeDocumentStore()

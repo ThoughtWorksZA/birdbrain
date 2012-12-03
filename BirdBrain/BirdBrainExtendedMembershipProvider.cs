@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Web.Security;
 using Raven.Client.Document;
@@ -9,164 +10,176 @@ namespace BirdBrain
 {
     public class BirdBrainExtendedMembershipProvider : ExtendedMembershipProvider
     {
-        private BirdBrainMembershipProvider delegateProvider;
+        #region delegation
+        protected internal BirdBrainMembershipProvider DelegateProvider { get; set; }
+
+        public BirdBrainExtendedMembershipProvider()
+        {
+            DelegateProvider = new BirdBrainMembershipProvider();
+        }
+
+        protected internal BirdBrainExtendedMembershipProvider(BirdBrainMembershipProvider deletegateProvider)
+        {
+            DelegateProvider = deletegateProvider;
+        }
+
         public override string ApplicationName
         {
-            get { return delegateProvider.ApplicationName; }
-            set { delegateProvider.ApplicationName = value; }
+            get { return DelegateProvider.ApplicationName; }
+            set { DelegateProvider.ApplicationName = value; }
         }
 
         public override void Initialize(string name, NameValueCollection config)
         {
-            delegateProvider.Initialize(name, config);
+            DelegateProvider.Initialize(name, config);
         }
 
         public void Dispose()
         {
-            delegateProvider.Dispose();
+            DelegateProvider.Dispose();
         }
 
         public DocumentStore DocumentStore
         {
-            get { return delegateProvider.DocumentStore; }
-            set { delegateProvider.DocumentStore = value; }
+            get { return DelegateProvider.DocumentStore; }
+            set { DelegateProvider.DocumentStore = value; }
         }
 
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
         {
-            return delegateProvider.ChangePassword(username, oldPassword, newPassword);
+            return DelegateProvider.ChangePassword(username, oldPassword, newPassword);
         }
 
         public override bool ChangePasswordQuestionAndAnswer(string username, string password, string newPasswordQuestion,
                                                     string newPasswordAnswer)
         {
-            return delegateProvider.ChangePasswordQuestionAndAnswer(username, password, newPasswordQuestion, newPasswordAnswer);
+            return DelegateProvider.ChangePasswordQuestionAndAnswer(username, password, newPasswordQuestion, newPasswordAnswer);
         }
 
         public override MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer,
                                          bool isApproved, object providerUserKey, out MembershipCreateStatus status)
         {
-            return delegateProvider.CreateUser(username, password, email, passwordQuestion, passwordAnswer, isApproved, providerUserKey, out status);
+            return DelegateProvider.CreateUser(username, password, email, passwordQuestion, passwordAnswer, isApproved, providerUserKey, out status);
         }
 
         public override bool DeleteUser(string username, bool deleteAllRelatedData)
         {
-            return delegateProvider.DeleteUser(username, deleteAllRelatedData);
+            return DelegateProvider.DeleteUser(username, deleteAllRelatedData);
         }
 
         public override bool EnablePasswordReset
         {
-            get { return delegateProvider.EnablePasswordReset; }
+            get { return DelegateProvider.EnablePasswordReset; }
         }
 
         public override bool EnablePasswordRetrieval
         {
-            get { return delegateProvider.EnablePasswordRetrieval; }
+            get { return DelegateProvider.EnablePasswordRetrieval; }
         }
 
         public override MembershipUserCollection FindUsersByEmail(string emailToMatch, int pageIndex, int pageSize, out int totalRecords)
         {
-            return delegateProvider.FindUsersByEmail(emailToMatch, pageIndex, pageSize, out totalRecords);
+            return DelegateProvider.FindUsersByEmail(emailToMatch, pageIndex, pageSize, out totalRecords);
         }
 
         public override MembershipUserCollection FindUsersByName(string usernameToMatch, int pageIndex, int pageSize, out int totalRecords)
         {
-            return delegateProvider.FindUsersByName(usernameToMatch, pageIndex, pageSize, out totalRecords);
+            return DelegateProvider.FindUsersByName(usernameToMatch, pageIndex, pageSize, out totalRecords);
         }
 
         public override MembershipUserCollection GetAllUsers(int pageIndex, int pageSize, out int totalRecords)
         {
-            return delegateProvider.GetAllUsers(pageIndex, pageSize, out totalRecords);
+            return DelegateProvider.GetAllUsers(pageIndex, pageSize, out totalRecords);
         }
 
         public override int GetNumberOfUsersOnline()
         {
-            return delegateProvider.GetNumberOfUsersOnline();
+            return DelegateProvider.GetNumberOfUsersOnline();
         }
 
         public override string GetPassword(string username, string answer)
         {
-            return delegateProvider.GetPassword(username, answer);
+            return DelegateProvider.GetPassword(username, answer);
         }
 
         public override MembershipUser GetUser(string username, bool userIsOnline)
         {
-            return delegateProvider.GetUser(username, userIsOnline);
+            return DelegateProvider.GetUser(username, userIsOnline);
         }
 
         public override MembershipUser GetUser(object providerUserKey, bool userIsOnline)
         {
-            return delegateProvider.GetUser(providerUserKey, userIsOnline);
+            return DelegateProvider.GetUser(providerUserKey, userIsOnline);
         }
 
         public override string GetUserNameByEmail(string email)
         {
-            return delegateProvider.GetUserNameByEmail(email);
+            return DelegateProvider.GetUserNameByEmail(email);
         }
 
         public override int MaxInvalidPasswordAttempts
         {
-            get { return delegateProvider.MaxInvalidPasswordAttempts; }
+            get { return DelegateProvider.MaxInvalidPasswordAttempts; }
         }
 
         public override int MinRequiredNonAlphanumericCharacters
         {
-            get { return delegateProvider.MinRequiredNonAlphanumericCharacters; }
+            get { return DelegateProvider.MinRequiredNonAlphanumericCharacters; }
         }
 
         public override int MinRequiredPasswordLength
         {
-            get { return delegateProvider.MinRequiredPasswordLength; }
+            get { return DelegateProvider.MinRequiredPasswordLength; }
         }
 
         public override int PasswordAttemptWindow
         {
-            get { return delegateProvider.PasswordAttemptWindow; }
+            get { return DelegateProvider.PasswordAttemptWindow; }
         }
 
         public override MembershipPasswordFormat PasswordFormat
         {
-            get { return delegateProvider.PasswordFormat; }
+            get { return DelegateProvider.PasswordFormat; }
         }
 
         public override string PasswordStrengthRegularExpression
         {
-            get { return delegateProvider.PasswordStrengthRegularExpression; }
+            get { return DelegateProvider.PasswordStrengthRegularExpression; }
         }
 
         public override bool RequiresQuestionAndAnswer
         {
-            get { return delegateProvider.RequiresQuestionAndAnswer; }
+            get { return DelegateProvider.RequiresQuestionAndAnswer; }
         }
 
         public override bool RequiresUniqueEmail
         {
-            get { return delegateProvider.RequiresUniqueEmail; }
+            get { return DelegateProvider.RequiresUniqueEmail; }
         }
 
         public override string ResetPassword(string username, string answer)
         {
-            return delegateProvider.ResetPassword(username, answer);
+            return DelegateProvider.ResetPassword(username, answer);
         }
 
         public override bool UnlockUser(string userName)
         {
-            return delegateProvider.UnlockUser(userName);
+            return DelegateProvider.UnlockUser(userName);
         }
 
         public override void UpdateUser(MembershipUser user)
         {
-            delegateProvider.UpdateUser(user);
+            DelegateProvider.UpdateUser(user);
         }
 
         public override bool ValidateUser(string username, string password)
         {
-            return delegateProvider.ValidateUser(username, password);
+            return DelegateProvider.ValidateUser(username, password);
         }
-
+#endregion delegation
         public override ICollection<OAuthAccountData> GetAccountsForUser(string userName)
         {
-            throw new NotImplementedException();
+            return new Collection<OAuthAccountData>();
         }
 
         public override string CreateUserAndAccount(string userName, string password, bool requireConfirmation, IDictionary<string, object> values)
@@ -176,12 +189,35 @@ namespace BirdBrain
 
         public override string CreateAccount(string userName, string password, bool requireConfirmationToken)
         {
-            throw new NotImplementedException();
+
+            MembershipCreateStatus status;
+            CreateUser(userName, password, null, null, null, true, null, out status);
+            if (status.Equals(MembershipCreateStatus.Success))
+            {
+                using (var session = DocumentStore.OpenSession())
+                {
+                    var user = BirdBrainHelper.GetUserByUsername(userName, session);
+                    user.ConfirmationToken = Guid.NewGuid().ToString();
+                    session.SaveChanges();
+                    return user.ConfirmationToken;
+                }
+            }
+            return "";
         }
 
         public override bool ConfirmAccount(string userName, string accountConfirmationToken)
         {
-            throw new NotImplementedException();
+            using (var session = DocumentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByUsername(userName, session);
+                if (user == null)
+                {
+                    return false;
+                }
+                user.IsConfirmed = user.ConfirmationToken == accountConfirmationToken;
+                session.SaveChanges();
+                return user.IsConfirmed;
+            }
         }
 
         public override bool ConfirmAccount(string accountConfirmationToken)
@@ -206,7 +242,11 @@ namespace BirdBrain
 
         public override bool IsConfirmed(string userName)
         {
-            throw new NotImplementedException();
+            using (var session = DocumentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByUsername(userName, session);
+                return user != null ? user.IsConfirmed : false;
+            }
         }
 
         public override bool ResetPasswordWithToken(string token, string newPassword)

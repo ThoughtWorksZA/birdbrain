@@ -18,6 +18,8 @@ namespace BirdBrain
         public DateTime LastLockedOut { get; set; }
         public bool IsApproved { get; set; }
         public string Comment { get; set; }
+        public string ConfirmationToken { get; set; }
+        public bool IsConfirmed { get; set; }
 
         public User(string username, string password, string email, string passwordQuestion, string passwordAnswer)
         {
