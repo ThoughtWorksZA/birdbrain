@@ -12,10 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{5FCFB8
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BirdBrainMVC", "BirdBrainMVC\BirdBrainMVC.csproj", "{E2AA4706-1059-4E85-9414-759D91E30DCF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BirdBrainMVC.Tests", "BirdBrainMVC.Tests\BirdBrainMVC.Tests.csproj", "{BEF053DD-E8B8-496A-9060-225FC6AA994E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,14 +26,6 @@ Global
 		{09CFB2DA-650C-4269-8F7A-01D6F79CBB54}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09CFB2DA-650C-4269-8F7A-01D6F79CBB54}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09CFB2DA-650C-4269-8F7A-01D6F79CBB54}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E2AA4706-1059-4E85-9414-759D91E30DCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E2AA4706-1059-4E85-9414-759D91E30DCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E2AA4706-1059-4E85-9414-759D91E30DCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E2AA4706-1059-4E85-9414-759D91E30DCF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BEF053DD-E8B8-496A-9060-225FC6AA994E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BEF053DD-E8B8-496A-9060-225FC6AA994E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BEF053DD-E8B8-496A-9060-225FC6AA994E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BEF053DD-E8B8-496A-9060-225FC6AA994E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
