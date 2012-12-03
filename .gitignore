@@ -46,7 +46,6 @@ _ReSharper*/
 
 #Subversion files
 .svn
-.nuget/
 
 # Office Temp Files
 ~$*
@@ -63,7 +62,3 @@ packages/
 
 #Test files
 *.testsettings
-
-.nuget/NuGet.Config
-.nuget/NuGet.exe
-.nuget/NuGet.targets
