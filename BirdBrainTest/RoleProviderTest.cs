@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Collections.Specialized;
 using System.Configuration;
 using System.Configuration.Provider;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Web.Configuration;
 using System.Web.Security;
-using Microsoft.Practices.ServiceLocation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Raven.Bundles.Encryption.Settings;
-using Raven.Bundles.UniqueConstraints;
-using Raven.Client.Document;
-using Raven.Client.Embedded;
 using BirdBrain;
 using Raven.Client.Linq;
-using Raven.Client.UniqueConstraints;
-using Raven.Database.Server;
 using Role = BirdBrain.Role;
 
 namespace BirdBrainTest

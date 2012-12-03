@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>BirdBrain</id>
+    <version>0.1.0-Unstable</version>
+    <title>BirdBrain</title>
+    <authors>Justin Wyer, Faris Mohammed</authors>
+    <owners>Justin Wyer, Faris Mohammed</owners>
+    <projectUrl>https://github.com/ThoughtWorksZA/birdbrain</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>ASP.NET MVC Membership and Role providers for RavenDB</description>
+    <releaseNotes>Initial release</releaseNotes>
+    <copyright>Copyright 2012</copyright>
+    <tags>ravendb mvc</tags>
+    <dependencies>
+      <dependency id="CommonServiceLocator" version="1.0"/>
+      <dependency id="RavenDB.Client" version="2.0.2161-Unstable"/>
+      <dependency id="RavenDB.Database" version="2.0.2161-Unstable"/>
+    </dependencies>
+  </metadata>
+</package>

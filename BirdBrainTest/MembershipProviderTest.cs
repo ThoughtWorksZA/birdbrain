@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Specialized;
 using System.Configuration;
 using System.Linq;
 using System.Threading;
 using System.Web.Configuration;
 using System.Web.Security;
 using BirdBrain;
-using Microsoft.Practices.ServiceLocation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Raven.Client.Document;
-using Raven.Client.Embedded;
-using Raven.Database.Server;
 
 namespace BirdBrainTest
 {
