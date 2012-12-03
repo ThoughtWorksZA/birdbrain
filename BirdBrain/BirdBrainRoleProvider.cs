@@ -3,9 +3,7 @@ using System.Collections.Specialized;
 using System.Configuration.Provider;
 using System.Linq;
 using System.Web.Security;
-using Microsoft.Practices.ServiceLocation;
 using Raven.Client.Document;
-using Raven.Client.Embedded;
 
 namespace BirdBrain
 {

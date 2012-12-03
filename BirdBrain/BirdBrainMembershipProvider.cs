@@ -4,9 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Security;
-using Microsoft.Practices.ServiceLocation;
 using Raven.Client.Document;
-using Raven.Client.Embedded;
 
 namespace BirdBrain
 {
