@@ -32,7 +32,8 @@ namespace BirdBrain
 
         public override void Initialize(string name, NameValueCollection config)
         {
-            DelegateProvider.Initialize(name, config);
+            base.Initialize(name, config);
+            DelegateProvider.InitializeBirdBrain(config);
         }
 
         public void Dispose()

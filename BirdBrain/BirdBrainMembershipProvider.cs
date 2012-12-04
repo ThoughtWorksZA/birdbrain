@@ -26,6 +26,11 @@ namespace BirdBrain
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
+            InitializeBirdBrain(config);
+        }
+
+        internal void InitializeBirdBrain(NameValueCollection config)
+        {
             InitializeDocumentStore();
             if (config["minRequiredPasswordLength"] != null)
             {

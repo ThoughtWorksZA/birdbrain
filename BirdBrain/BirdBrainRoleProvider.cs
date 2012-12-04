@@ -9,6 +9,12 @@ namespace BirdBrain
 {
     public class BirdBrainRoleProvider : RoleProvider
     {
+        private string providerName;
+        public override string Name
+        {
+            get { return providerName; }
+        }
+
         private DocumentStore documentStore;
         public static readonly string ConnectionStringName = "BirdBrain";
 
@@ -16,6 +22,7 @@ namespace BirdBrain
 
         public override void Initialize(string name, NameValueCollection config)
         {
+            providerName = name;
             base.Initialize(name, config);
             InitializeDocumentStore();
         }
