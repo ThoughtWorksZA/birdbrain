@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Web.Security;
+using Raven.Client;
 using Raven.Client.Document;
 using WebMatrix.WebData;
 
@@ -184,15 +185,15 @@ namespace BirdBrain
 
         public override string CreateUserAndAccount(string userName, string password, bool requireConfirmation, IDictionary<string, object> values)
         {
-            throw new NotImplementedException();
+            return CreateAccount(userName, password, requireConfirmation);
         }
 
         public override string CreateAccount(string userName, string password, bool requireConfirmationToken)
         {
 
             MembershipCreateStatus status;
-            CreateUser(userName, password, null, null, null, true, null, out status);
-            if (status.Equals(MembershipCreateStatus.Success))
+            CreateUser(userName, password, null, null, null, !requireConfirmationToken, null, out status);
+            if (status.Equals(MembershipCreateStatus.Success) && requireConfirmationToken)
             {
                 using (var session = DocumentStore.OpenSession())
                 {
@@ -202,7 +203,7 @@ namespace BirdBrain
                     return user.ConfirmationToken;
                 }
             }
-            return "";
+            return null;
         }
 
         public override bool ConfirmAccount(string userName, string accountConfirmationToken)
@@ -210,34 +211,68 @@ namespace BirdBrain
             using (var session = DocumentStore.OpenSession())
             {
                 var user = BirdBrainHelper.GetUserByUsername(userName, session);
-                if (user == null)
-                {
-                    return false;
-                }
-                user.IsConfirmed = user.ConfirmationToken == accountConfirmationToken;
-                session.SaveChanges();
-                return user.IsConfirmed;
+                return ConfirmAccount(accountConfirmationToken, user, session);
             }
         }
 
         public override bool ConfirmAccount(string accountConfirmationToken)
         {
-            throw new NotImplementedException();
+            using (var session = DocumentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByConfirmationToken(accountConfirmationToken, session);
+                return ConfirmAccount(accountConfirmationToken, user, session);
+            }
+        }
+
+        private static bool ConfirmAccount(string accountConfirmationToken, User user, IDocumentSession session)
+        {
+            if (user == null)
+            {
+                return false;
+            }
+            user.IsApproved = user.ConfirmationToken == accountConfirmationToken;
+            session.SaveChanges();
+            return user.IsApproved;
         }
 
         public override bool DeleteAccount(string userName)
         {
-            throw new NotImplementedException();
+            using (var session = DocumentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByUsername(userName, session);
+                if (user != null)
+                {
+                    session.Delete(user);
+                    session.SaveChanges();
+                    return true;
+                }
+                return false;
+            }
         }
 
         public override string GeneratePasswordResetToken(string userName, int tokenExpirationInMinutesFromNow)
         {
-            throw new NotImplementedException();
+            using (var session = DocumentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByUsername(userName, session);
+                if (user != null)
+                {
+                    user.PasswordResetToken = Guid.NewGuid().ToString();
+                    user.PasswordResetTokenExpiry = DateTime.Now.Add(TimeSpan.FromMinutes(tokenExpirationInMinutesFromNow));
+                    session.SaveChanges();
+                    return user.PasswordResetToken;
+                }
+                return null;
+            }
         }
 
         public override int GetUserIdFromPasswordResetToken(string token)
         {
-            throw new NotImplementedException();
+            using (var session = DocumentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByPasswordResetToken(token, session);
+                return user != null ? user.GetIdAsInt() : -1;
+            }
         }
 
         public override bool IsConfirmed(string userName)
@@ -245,33 +280,62 @@ namespace BirdBrain
             using (var session = DocumentStore.OpenSession())
             {
                 var user = BirdBrainHelper.GetUserByUsername(userName, session);
-                return user != null ? user.IsConfirmed : false;
+                return user != null && user.IsApproved;
             }
         }
 
         public override bool ResetPasswordWithToken(string token, string newPassword)
         {
-            throw new NotImplementedException();
+            using (var session = DocumentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByPasswordResetToken(token, session);
+                if (user != null)
+                {
+                    user.Password = BirdBrainMembershipProvider.HashPassword(newPassword);
+                    user.PasswordResetTokenExpiry = DateTime.MinValue;
+                    user.LastPasswordChange = DateTime.Now;
+                    session.SaveChanges();
+                    return true;
+                }
+                return false;
+
+            }
         }
 
         public override int GetPasswordFailuresSinceLastSuccess(string userName)
         {
-            throw new NotImplementedException();
+            using (var session = DocumentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByUsername(userName, session);
+                return user != null ? user.PasswordFailuresSinceLastSuccess : 0;
+            }
         }
 
         public override DateTime GetCreateDate(string userName)
         {
-            throw new NotImplementedException();
+            using (var session = DocumentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByUsername(userName, session);
+                return user != null ? user.Created : DateTime.MinValue;
+            }
         }
 
         public override DateTime GetPasswordChangedDate(string userName)
         {
-            throw new NotImplementedException();
+            using (var session = DocumentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByUsername(userName, session);
+                return user != null ? user.LastPasswordChange : DateTime.MinValue;
+            }
         }
 
         public override DateTime GetLastPasswordFailureDate(string userName)
         {
-            throw new NotImplementedException();
+            using (var session = DocumentStore.OpenSession())
+            {
+                var user = BirdBrainHelper.GetUserByUsername(userName, session);
+                return user != null ? user.LastPasswordFailures : DateTime.MinValue;
+            }
         }
     }
 }

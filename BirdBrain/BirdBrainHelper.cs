@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Raven.Client;
 
@@ -12,7 +13,7 @@ namespace BirdBrain
                                    user.Password == password
                              select user;
             var users = usersQuery.ToArray();
-            return users.Count() != 0 ? users.First() : null;
+            return users.Any() ? users.First() : null;
         }
 
         public static User GetUserByUsername(string username, IDocumentSession session)
@@ -21,7 +22,7 @@ namespace BirdBrain
                              where user.Username == username
                              select user;
             var users = usersQuery.ToArray();
-            return users.Count() != 0 ? users.First() : null;
+            return users.Any() ? users.First() : null;
         }
 
         public static User GetUserByUsernameAndAnswer(string username, string answer, IDocumentSession session)
@@ -31,7 +32,26 @@ namespace BirdBrain
                                    user.PasswordAnswer == answer
                              select user;
             var users = usersQuery.ToArray();
-            return users.Count() != 0 ? users.First() : null;
+            return users.Any() ? users.First() : null;
+        }
+
+        public static User GetUserByConfirmationToken(string accountConfirmationToken, IDocumentSession session)
+        {
+            var usersQuery = from user in session.Query<User>()
+                             where user.ConfirmationToken == accountConfirmationToken
+                             select user;
+            var users = usersQuery.ToArray();
+            return users.Any() ? users.First() : null;
+        }
+
+        public static User GetUserByPasswordResetToken(string token, IDocumentSession session)
+        {
+            var usersQuery = from user in session.Query<User>()
+                             where user.PasswordResetToken == token &&
+                                   DateTime.UtcNow <= user.PasswordResetTokenExpiry
+                             select user;
+            var users = usersQuery.ToArray();
+            return users.Any() ? users.First() : null;
         }
     }
 }

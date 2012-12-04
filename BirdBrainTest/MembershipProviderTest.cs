@@ -220,7 +220,7 @@ namespace BirdBrainTest
             provider.CreateUser("test", "password", "derp@herp.com", "Is this a test?", "yes", true, null, out status);
             Thread.Sleep(500);
             var password = provider.ResetPassword("test", "yes");
-            Thread.Sleep(500);
+            Thread.Sleep(800);
             Assert.IsTrue(provider.ValidateUser("test", password));
         }
 

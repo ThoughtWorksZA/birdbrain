@@ -19,27 +19,35 @@ namespace BirdBrain
         public bool IsApproved { get; set; }
         public string Comment { get; set; }
         public string ConfirmationToken { get; set; }
-        public bool IsConfirmed { get; set; }
+        public string PasswordResetToken { get; set; }
+        public DateTime PasswordResetTokenExpiry { get; set; }
+        public int PasswordFailuresSinceLastSuccess { get; set; }
+        public DateTime LastPasswordFailures { get; set; }
 
-        public User(string username, string password, string email, string passwordQuestion, string passwordAnswer)
+        public User(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved)
         {
             Username = username;
             Password = password;
             Email = email;
             PasswordQuestion = passwordQuestion;
             PasswordAnswer = passwordAnswer;
+            IsApproved = isApproved;
             Created = DateTime.Now;
             LastLogin = DateTime.MinValue;
             LastActive = DateTime.MinValue;
             LastPasswordChange = DateTime.MinValue;
             LastLockedOut = DateTime.MinValue;
-            IsApproved = true;
             Comment = "";
             Roles = new string[] {};
         }
 
         public User()
         {
+        }
+
+        public int GetIdAsInt()
+        {
+            return Int32.Parse(Id.Split('/')[1]);
         }
     }
 }
