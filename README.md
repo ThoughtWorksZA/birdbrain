@@ -26,17 +26,18 @@ Multiple application support, mostly because I think the use case for a shared u
 Create a new project using the ASP.NET MVC 4 Internet Application template.
 
 Add the [nuget package](https://nuget.org/packages/BirdBrain) to your project.
-Add a connection for BirdBrain to the <connectionStrings> section of your Web.config
+
+Add a connection for BirdBrain to the **connectionStrings** section of your Web.config
 ```xml
 <add name="BirdBrain" connectionString="Url=http://localhost:8080;Database=BirdBrainMVC" providerName="Raven.Client.Document.DocumentStore"/>
 ```
 
-Add the following to the <appSettings> section of your Web.config
+Add the following to the **appSettings** section of your Web.config
 ```xml
 <add key="enableSimpleMembership" value="false" />
 ```
 
-Add the following to the <system.web> section of your Web.config
+Add the following to the **system.web** section of your Web.config
 ```xml
 <membership defaultProvider="BirdBrainMembership">
     <providers>
