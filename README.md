@@ -20,3 +20,34 @@ Multiple application support, mostly because I think the use case for a shared u
 2. Write some tests.
 3. Write your code.
 4. Commit, push and send a pull request.
+
+## Example
+
+Create a new project using the ASP.NET MVC 4 Internet Application template.
+
+Add the [nuget package](https://nuget.org/packages/BirdBrain) to your project.
+Add a connection for BirdBrain to the <connectionStrings> section of your Web.config
+```xml
+<add name="BirdBrain" connectionString="Url=http://localhost:8080;Database=BirdBrainMVC" providerName="Raven.Client.Document.DocumentStore"/>
+```
+
+Add the following to the <appSettings> section of your Web.config
+```xml
+<add key="enableSimpleMembership" value="false" />
+```
+
+Add the following to the <system.web> section of your Web.config
+```xml
+<membership defaultProvider="BirdBrainMembership">
+    <providers>
+    <clear />
+    <add name="BirdBrainMembership" connectionStringName="BirdBrain" applicationName="/" minRequiredPasswordLength="6" maxInvalidPasswordAttempts="5" minRequiredNonAlphanumericCharacters="0" passwordFormat="Hashed" passwordStrengthRegularExpression="[\d\w].*" requiresQuestionAndAnswer="true" type="BirdBrain.BirdBrainExtendedMembershipProvider, BirdBrain" />
+    </providers>
+</membership>
+<roleManager defaultProvider="BirdBrainRole" enabled="true">
+    <providers>
+    <clear />
+    <add name="BirdBrainRole" applicationName="/" type="BirdBrain.BirdBrainRoleProvider, BirdBrain" />
+    </providers>
+</roleManager>
+```
