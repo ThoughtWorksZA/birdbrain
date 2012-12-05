@@ -16,7 +16,6 @@ namespace BirdBrain
         }
 
         private DocumentStore documentStore;
-        public static readonly string ConnectionStringName = "BirdBrain";
 
         public override string ApplicationName { get; set; }
 
@@ -24,7 +23,7 @@ namespace BirdBrain
         {
             providerName = name;
             base.Initialize(name, config);
-            InitializeDocumentStore();
+            InitializeDocumentStore(config["connectionStringName"]);
         }
 
         public void Dispose()
@@ -41,11 +40,11 @@ namespace BirdBrain
             }
         }
 
-        protected virtual void InitializeDocumentStore()
+        protected virtual void InitializeDocumentStore(string connectionStringName)
         {
             DocumentStore = new DocumentStore
             {
-                ConnectionStringName = BirdBrainRoleProvider.ConnectionStringName,
+                ConnectionStringName = connectionStringName
             };
             DocumentStore.Initialize();
         }

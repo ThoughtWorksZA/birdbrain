@@ -5,11 +5,11 @@ namespace BirdBrainTest
 {
     class EmbeddedBirdBrainMembershipProvider : BirdBrainMembershipProvider
     {
-        protected override void InitializeDocumentStore()
+        protected override void InitializeDocumentStore(string connectionStringName)
         {
             DocumentStore = new EmbeddableDocumentStore
             {
-                ConnectionStringName = BirdBrainRoleProvider.ConnectionStringName,
+                ConnectionStringName = connectionStringName
             };
             DocumentStore.Initialize();
         }
@@ -24,11 +24,11 @@ namespace BirdBrainTest
 
     class EmbeddedBirdBrainRoleProvider : BirdBrainRoleProvider
     {
-        protected override void InitializeDocumentStore()
+        protected override void InitializeDocumentStore(string connectionStringName)
         {
             DocumentStore = new EmbeddableDocumentStore
             {
-                ConnectionStringName = ConnectionStringName,
+                ConnectionStringName = connectionStringName
             };
             DocumentStore.Initialize();
         }

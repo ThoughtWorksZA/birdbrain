@@ -31,7 +31,7 @@ namespace BirdBrain
 
         internal void InitializeBirdBrain(NameValueCollection config)
         {
-            InitializeDocumentStore();
+            InitializeDocumentStore(config["connectionStringName"]);
             if (config["minRequiredPasswordLength"] != null)
             {
                 minRequiredPasswordLength = Int32.Parse(config["minRequiredPasswordLength"]);
@@ -66,11 +66,11 @@ namespace BirdBrain
             }
         }
 
-        protected virtual void InitializeDocumentStore()
+        protected virtual void InitializeDocumentStore(string connectionStringName)
         {
             DocumentStore = new DocumentStore
                 {
-                    ConnectionStringName = BirdBrainRoleProvider.ConnectionStringName,
+                    ConnectionStringName = connectionStringName
                 };
             DocumentStore.Initialize();
         }

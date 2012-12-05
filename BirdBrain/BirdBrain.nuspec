@@ -2,14 +2,14 @@
 <package>
   <metadata>
     <id>BirdBrain</id>
-    <version>0.2.2-Unstable</version>
+    <version>0.2.3-Unstable</version>
     <title>BirdBrain</title>
     <authors>Justin Wyer, Faris Mohammed</authors>
     <owners>Justin Wyer, Faris Mohammed</owners>
     <projectUrl>https://github.com/ThoughtWorksZA/birdbrain</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>ASP.NET MVC Membership and Role providers for RavenDB</description>
-    <releaseNotes>Initial release</releaseNotes>
+    <releaseNotes>Configurable connectionStringName supported.</releaseNotes>
     <copyright>Copyright 2012</copyright>
     <tags>ravendb mvc</tags>
     <dependencies>
