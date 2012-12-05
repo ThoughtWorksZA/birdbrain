@@ -29,7 +29,7 @@ Add the [nuget package](https://nuget.org/packages/BirdBrain) to your project.
 
 Add a connection for BirdBrain to the **connectionStrings** section of your Web.config
 ```xml
-<add name="BirdBrain" connectionString="Url=http://localhost:8080;Database=BirdBrainMVC" providerName="Raven.Client.Document.DocumentStore"/>
+<add name="RavenDB" connectionString="Url=http://localhost:8080;Database=BirdBrainMVC" providerName="Raven.Client.Document.DocumentStore"/>
 ```
 
 Add the following to the **appSettings** section of your Web.config
@@ -42,13 +42,13 @@ Add the following to the **system.web** section of your Web.config
 <membership defaultProvider="BirdBrainMembership">
     <providers>
     <clear />
-    <add name="BirdBrainMembership" connectionStringName="BirdBrain" applicationName="/" minRequiredPasswordLength="6" maxInvalidPasswordAttempts="5" minRequiredNonAlphanumericCharacters="0" passwordFormat="Hashed" passwordStrengthRegularExpression="[\d\w].*" requiresQuestionAndAnswer="true" type="BirdBrain.BirdBrainExtendedMembershipProvider, BirdBrain" />
+    <add name="BirdBrainMembership" connectionStringName="RavenDB" applicationName="/" minRequiredPasswordLength="6" maxInvalidPasswordAttempts="5" minRequiredNonAlphanumericCharacters="0" passwordFormat="Hashed" passwordStrengthRegularExpression="[\d\w].*" requiresQuestionAndAnswer="true" type="BirdBrain.BirdBrainExtendedMembershipProvider, BirdBrain" />
     </providers>
 </membership>
 <roleManager defaultProvider="BirdBrainRole" enabled="true">
     <providers>
     <clear />
-    <add name="BirdBrainRole" applicationName="/" type="BirdBrain.BirdBrainRoleProvider, BirdBrain" />
+    <add name="BirdBrainRole" connectionStringName="RavenDB" applicationName="/" type="BirdBrain.BirdBrainRoleProvider, BirdBrain" />
     </providers>
 </roleManager>
 ```
