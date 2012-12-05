@@ -252,7 +252,7 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var user = session.Load<User>(providerUserKey.ToString());
+                var user = session.Load<User>((int)providerUserKey);
                 return new BirdBrainMembershipUser(user);
             }
         }
@@ -334,7 +334,7 @@ namespace BirdBrain
         {
             using (var session = documentStore.OpenSession())
             {
-                var existingUser = session.Load<User>(user.ProviderUserKey.ToString());
+                var existingUser = session.Load<User>((int)user.ProviderUserKey);
                 if (existingUser != null)
                 {
                     existingUser.Email = user.Email;

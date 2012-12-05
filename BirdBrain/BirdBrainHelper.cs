@@ -53,5 +53,10 @@ namespace BirdBrain
             var users = usersQuery.ToArray();
             return users.Any() ? users.First() : null;
         }
+
+        public static User GetUserById(int id, IDocumentSession session)
+        {
+            return session.Load<User>(string.Format("users/{0}", id));
+        }
     }
 }

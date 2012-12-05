@@ -160,7 +160,7 @@ namespace BirdBrainTest
                              where _user.Username == "test"
                              select _user;
             var user = usersQuery.ToArray().First();
-            Assert.AreEqual(userId, user.GetIdAsInt());
+            Assert.AreEqual(userId, user.Id);
         }
 
         [TestMethod]
@@ -269,6 +269,19 @@ namespace BirdBrainTest
         public void ShouldNotKnowHowToGetLastPasswordFailureDateForInvalidUser()
         {
             Assert.AreEqual(DateTime.MinValue, provider.GetLastPasswordFailureDate("test"));
+        }
+
+        [TestMethod]
+        public void ShouldKnowWeHaveALocalAccountForValidUser()
+        {
+            provider.CreateAccount("test", "password", false);
+            Assert.IsTrue(provider.HasLocalAccount(1));
+        }
+
+        [TestMethod]
+        public void ShouldKnowWeDontHaveALocalAccountForInvalidUser()
+        {
+            Assert.IsFalse(provider.HasLocalAccount(1));
         }
     }
 }

@@ -272,7 +272,7 @@ namespace BirdBrain
             using (var session = DocumentStore.OpenSession())
             {
                 var user = BirdBrainHelper.GetUserByPasswordResetToken(token, session);
-                return user != null ? user.GetIdAsInt() : -1;
+                return user != null ? user.Id : -1;
             }
         }
 
@@ -336,6 +336,14 @@ namespace BirdBrain
             {
                 var user = BirdBrainHelper.GetUserByUsername(userName, session);
                 return user != null ? user.LastPasswordFailures : DateTime.MinValue;
+            }
+        }
+
+        public override bool HasLocalAccount(int userId)
+        {
+            using (var session = DocumentStore.OpenSession())
+            {
+                return BirdBrainHelper.GetUserById(userId, session) != null;
             }
         }
     }
