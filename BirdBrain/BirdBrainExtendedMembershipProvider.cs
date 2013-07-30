@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Web.Security;
 using Raven.Client;
 using Raven.Client.Document;
 using WebMatrix.WebData;
+using Raven.Client.Linq;
 
 namespace BirdBrain
 {
@@ -198,6 +200,9 @@ namespace BirdBrain
             {
                 using (var session = DocumentStore.OpenSession())
                 {
+                    session.Query<User>()
+                           .Customize(a => a.WaitForNonStaleResultsAsOfLastWrite())
+                           .First(u => u.Username == userName);
                     var user = BirdBrainHelper.GetUserByUsername(userName, session);
                     user.ConfirmationToken = Guid.NewGuid().ToString();
                     session.SaveChanges();
