@@ -171,10 +171,9 @@ namespace BirdBrain
             {
                 foreach (var username in usernames)
                 {
-                    var users = from _user in session.Query<User>()
-                                where _user.Username == username
-                                select _user;
-                    var user = users.ToArray().First();
+                    var user = session.Query<User>()
+                                        .Customize(options => options.WaitForNonStaleResultsAsOfLastWrite())
+                                        .First(it => it.Username == username);
                     user.Roles = user.Roles.Union(roleNames).ToArray();
                     session.Store(user);
                     session.SaveChanges();
